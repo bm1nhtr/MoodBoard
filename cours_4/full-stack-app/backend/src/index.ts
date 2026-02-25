@@ -1,5 +1,5 @@
 import express from 'express';
-//import userRoutes from './routes/users';
+import cors from 'cors'; // Import cors
 import userRouter from './routes/userRoutes.js';
 
 console.log("HELLO !")
@@ -12,8 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware pour parser le JSON
 app.use(express.json());
 
-// Routes
-//app.use('/users', userRoutes);
+// Enable CORS
+app.use(cors());
 
 // Basic route
 app.get('/salut', (req, res) => {
