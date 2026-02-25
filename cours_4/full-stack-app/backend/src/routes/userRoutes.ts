@@ -2,10 +2,10 @@ import express, { Router, Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import {User} from '../models/User';
 
 const userRouter: Router = express.Router();
 
-// Fix for __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -39,40 +39,40 @@ userRouter.get('/', (req: Request, res: Response) => {
 });
 
 // GET: Fetch a user by ID
-userRouter.get('/:id', (req: Request, res: Response) => {
+userRouter.get('/:id', (req: Request, res: Response<User|Record<string,string>>) => {
   const users = readData();
-  const user = users.find((u: any) => u.id === req.params.id);
+  const user = users.find((u: User) => u.id === req.params.id);
   
   if (!user) return res.status(404).json({ message: 'User not found' });
-  res.json({ message: `User with ID ${req.params.id}`, user });
+  res.json(user);
 });
 
 // POST: Create a user
-userRouter.post('/', (req: Request, res: Response) => {
+userRouter.post('/', (req: Request, res: Response<User|Record<string,string>>) => {
   const users = readData();
   const newUser = { id: Date.now().toString(), ...req.body };
   
   users.push(newUser);
   writeData(users);
-  res.status(201).json({ message: 'User created', user: newUser });
+  res.status(201).json(newUser);
 });
 
 // PUT: Update a user
-userRouter.put('/:id', (req: Request, res: Response) => {
+userRouter.put('/:id', (req: Request, res: Response<User|Record<string,string>>) => {
   let users = readData();
-  const index = users.findIndex((u: any) => u.id === req.params.id);
+  const index = users.findIndex((u: User) => u.id === req.params.id);
 
   if (index === -1) return res.status(404).json({ message: 'User not found' });
 
   users[index] = { ...users[index], ...req.body };
   writeData(users);
-  res.json({ message: `User ${req.params.id} updated`, user: users[index] });
+  res.json(users[index]);
 });
 
 // DELETE: Delete a user
-userRouter.delete('/:id', (req: Request, res: Response) => {
+userRouter.delete('/:id', (req: Request, res: Response<Record<string,string>>) => {
   const users = readData();
-  const filteredUsers = users.filter((u: any) => u.id !== req.params.id);
+  const filteredUsers = users.filter((u: User) => u.id !== req.params.id);
 
   if (users.length === filteredUsers.length) {
     return res.status(404).json({ message: 'User not found' });
