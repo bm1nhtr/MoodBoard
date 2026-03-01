@@ -1,0 +1,34 @@
+.layer-menu__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+}
+
+.layer-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 11rem;
+  padding: 0.25rem 0;
+  margin: 0;
+  list-style: none;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.layer-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.layer-menu button:hover {
+  background: var(--color-bg-hover);
+}

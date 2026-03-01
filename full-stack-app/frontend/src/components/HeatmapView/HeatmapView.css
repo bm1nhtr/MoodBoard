@@ -1,0 +1,147 @@
+/* Vue principale : heatmap 12 mois en lignes, couleurs par jour */
+
+.heatmap-view {
+  padding-bottom: 2rem;
+}
+
+.heatmap-view__section {
+  margin-bottom: 2rem;
+}
+
+.heatmap-view__section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.heatmap-view__grid-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  padding: 0.5rem;
+}
+
+.heatmap-view__row {
+  display: grid;
+  grid-template-columns: 2.5rem repeat(31, minmax(0.45rem, 1fr));
+  gap: 2px;
+  align-items: center;
+  min-height: 1.75rem;
+}
+
+.heatmap-view__row--header .heatmap-view__day-header {
+  font-size: 0.55rem;
+  color: var(--color-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.heatmap-view__month-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: right;
+  padding-right: 0.35rem;
+}
+
+.heatmap-view__month-label--header {
+  visibility: hidden;
+}
+
+.heatmap-view__cell {
+  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0.9rem;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background: var(--color-bg);
+}
+
+.heatmap-view__cell:hover:not(:disabled) {
+  transform: scale(1.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.heatmap-view__cell--empty {
+  background: transparent;
+  cursor: default;
+  pointer-events: none;
+}
+
+.heatmap-view__cell--future {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Jour coloré mais non accessible en démo (mock couleur uniquement) */
+.heatmap-view__cell--locked {
+  cursor: default;
+}
+
+.heatmap-view__cell--locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Ô hôm nay : nổi bật, animation nảy nhẹ */
+.heatmap-view__cell--today {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  animation: heatmap-today-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes heatmap-today-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(122, 139, 109, 0.35);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 4px rgba(122, 139, 109, 0.2);
+  }
+}
+
+.heatmap-view__cell--today:hover:not(:disabled) {
+  animation: none;
+  transform: scale(1.2);
+}
+
+/* Thẻ hướng dẫn sous la heatmap */
+.heatmap-view__hint {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.heatmap-view__hint-text {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.heatmap-view__hint-demo {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.heatmap-view__hint-demo strong {
+  color: var(--color-text);
+}
+
+@media (min-width: 600px) {
+  .heatmap-view__row {
+    grid-template-columns: 3.5rem repeat(31, minmax(0.6rem, 1fr));
+    min-height: 2rem;
+  }
+
+  .heatmap-view__cell {
+    min-height: 1rem;
+  }
+}
