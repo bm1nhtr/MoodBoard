@@ -3,6 +3,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRouter from './routes/userRoutes.js';
+import noteRouter from './routes/noteRoutes.js';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get('/salut', (req, res) => {
 });
 
 app.use('/api/users', userRouter);
+app.use('/api/notes', noteRouter);
 
 // Connexion MongoDB puis démarrage serveur
 mongoose.connect(process.env.MONGODB_URI as string)
