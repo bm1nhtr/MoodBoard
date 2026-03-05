@@ -46,3 +46,6 @@ Thumbs.db
 
 # Optional eslint cache
 .eslintcache
+
+# Dev summary (internal, not tracked)
+DEVELOPMENT_SUMMARY.md

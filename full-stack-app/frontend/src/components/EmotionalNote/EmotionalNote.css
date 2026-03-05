@@ -1,0 +1,187 @@
+/* Cadre (frame) : glisser, redimensionner, forme cercle / cœur / rectangle */
+
+.emotional-note {
+  position: absolute;
+  padding: 0;
+  overflow: hidden;
+  cursor: grab;
+  transition: box-shadow 0.2s ease;
+}
+
+.emotional-note:active {
+  cursor: grabbing;
+}
+
+/* Forme : cercle */
+.emotional-note--circle {
+  border-radius: 50%;
+}
+
+.emotional-note--circle .emotional-note__inner {
+  border-radius: 50%;
+}
+
+/* Forme : cœur (clip-path) */
+.emotional-note--heart {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 50% 85%, 18% 100%, 0% 38%);
+}
+
+.emotional-note--heart .emotional-note__inner {
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 50% 85%, 18% 100%, 0% 38%);
+}
+
+/* Forme : rectangle */
+.emotional-note--rectangle {
+  border-radius: var(--radius-card);
+}
+
+.emotional-note--rectangle .emotional-note__inner {
+  border-radius: var(--radius-card);
+}
+
+.emotional-note__inner {
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Quand une image est présente : plein cadre, pas de padding */
+.emotional-note--has-image .emotional-note__inner {
+  padding: 0;
+}
+
+.emotional-note--has-image .emotional-note__image-wrap {
+  flex: 1;
+  min-height: 100%;
+}
+
+/* Image rognée au cadre : remplir le cadre, overflow hidden */
+.emotional-note__image-wrap {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.emotional-note--has-image .emotional-note__image-wrap {
+  margin-bottom: 0;
+}
+
+.emotional-note__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.emotional-note__placeholder {
+  flex: 1;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  text-align: center;
+  padding: 0.5rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.emotional-note__placeholder--text {
+  min-height: 2.5rem;
+}
+
+.emotional-note__text-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.emotional-note__text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+}
+
+/* Badge auteur (mock collab : Alice, Bob — à partir du 1er mars) */
+.emotional-note__author-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.emotional-note__author-badge--me {
+  background: var(--color-accent);
+}
+
+.emotional-note__author-badge--alice {
+  background: #5a8a5a;
+}
+
+.emotional-note__author-badge--bob {
+  background: #8a7355;
+}
+
+/* Poignée de redimensionnement (coin bas-droit) */
+.emotional-note__resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.15) 50%);
+}
+
+.emotional-note__resize-handle:hover {
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.25) 50%);
+}
+
+/* Effets par mood (palette xanh → nâu) */
+.mood--serenity {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.mood--wonder {
+  box-shadow: 0 2px 8px rgba(143, 188, 143, 0.25);
+}
+
+.mood--tenderness {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.mood--longing {
+  filter: contrast(0.98);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.mood--quiet {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: none;
+}
