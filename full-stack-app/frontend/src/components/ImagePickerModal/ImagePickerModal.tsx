@@ -1,5 +1,5 @@
 /**
- * Cửa sổ chọn ảnh khi ấn vào khung : fichier local ou lien image (concept Miro)
+ * Fenêtre de choix d’image au clic sur un cadre : fichier local ou lien image (concept type Miro).
  */
 
 import { useState, useCallback, useRef, useEffect, type FC } from 'react';
@@ -82,7 +82,7 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
       <div className="image-picker-modal__panel">
         <header className="image-picker-modal__header">
           <h2 id="image-picker-title" className="image-picker-modal__title">
-            Chọn ảnh
+            Choisir une image
           </h2>
           <button
             type="button"

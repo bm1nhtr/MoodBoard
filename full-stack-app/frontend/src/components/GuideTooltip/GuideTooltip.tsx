@@ -1,6 +1,6 @@
 /**
  * Bulle d’aide avec flèche pointant vers une cible (getBoundingClientRect).
- * Une étape par type de khung (image, texte, FAB), chaque type guidé une seule fois.
+ * Une étape par type de cadre (image, texte, FAB), chaque type guidé une seule fois.
  */
 
 import type { FC } from 'react';

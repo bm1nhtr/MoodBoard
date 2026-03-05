@@ -1,6 +1,6 @@
 /**
- * Vue principale : heatmap 12 mois. Les jours avec des notes sont colorés.
- * Clic sur un jour → ouvrir le board (démo : seuls 1er, 2 et 3 mars accessibles).
+ * Heatmap transposée : en colonnes = mois (12), en lignes = jour du mois (1–31).
+ * Affichage vertical, prévue pour ~1/3 de largeur écran.
  */
 
 import { useMemo, type FC } from 'react';
@@ -16,7 +16,6 @@ const MONTH_NAMES = [
 interface HeatmapViewProps {
   year: number;
   heatmapByMonth: Record<number, DayHeatmapEntry[]>;
-  /** Jours dont on peut ouvrir le board (démo : 1, 2, 3 mars uniquement) */
   accessibleDates: string[];
   onSelectDay: (date: string) => void;
 }
@@ -60,68 +59,57 @@ const HeatmapView: FC<HeatmapViewProps> = ({
   };
 
   return (
-    <div className="heatmap-view">
-      <section className="heatmap-view__section heatmap-view__heatmap-section">
-        <h2 className="heatmap-view__section-title">Votre année en couleurs</h2>
-        <div className="heatmap-view__grid-wrap">
-          <div className="heatmap-view__row heatmap-view__row--header">
-            <span className="heatmap-view__month-label heatmap-view__month-label--header" />
-            {Array.from({ length: 31 }, (_, i) => (
-              <span key={i} className="heatmap-view__day-header">
-                {i + 1}
-              </span>
-            ))}
-          </div>
-          {MONTH_NAMES.map((label, idx) => {
-            const month = idx + 1;
-            const days = daysInMonth(month);
-            return (
-              <div key={month} className="heatmap-view__row">
-                <span className="heatmap-view__month-label">{label}</span>
-                {Array.from({ length: 31 }, (_, i) => {
-                  const dayNum = i + 1;
-                  const isInMonth = dayNum <= days;
-                  const dateStr = isInMonth
-                    ? `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
-                    : '';
-                  const entry = dateStr ? byDate[dateStr] ?? null : null;
-                  const isToday = dateStr === todayStr;
-                  const isFuture = dateStr > todayStr;
-                  const canOpen = dateStr && !isFuture && accessibleSet.has(dateStr);
-                  const hasColor = entry && entry.noteCount > 0;
-                  return (
-                    <button
-                      key={dayNum}
-                      type="button"
-                      className={`heatmap-view__cell ${!isInMonth ? 'heatmap-view__cell--empty' : ''} ${isToday ? 'heatmap-view__cell--today' : ''} ${isFuture ? 'heatmap-view__cell--future' : ''} ${hasColor && !canOpen ? 'heatmap-view__cell--locked' : ''}`}
-                      style={isInMonth ? { backgroundColor: getDayColor(entry) } : undefined}
-                      onClick={() => handleCellClick(dateStr)}
-                      disabled={!isInMonth || isFuture}
-                      title={
-                        dateStr
-                          ? canOpen
-                            ? (entry?.noteCount ? `${entry.noteCount} note(s) — Cliquer pour ouvrir` : 'Ouvrir le board')
-                            : hasColor
-                              ? 'Démo : accès limité au 1er, 2 et 3 mars'
-                              : dateStr
-                          : ''
-                      }
-                    />
-                  );
-                })}
-              </div>
-            );
-          })}
+    <div className="heatmap-view heatmap-view--vertical">
+      <h2 className="heatmap-view__section-title">Année</h2>
+      <div className="heatmap-view__grid-wrap heatmap-view__grid-wrap--transpose">
+        <div className="heatmap-view__row heatmap-view__row--header">
+          <span className="heatmap-view__day-label heatmap-view__day-label--header" />
+          {MONTH_NAMES.map((label) => (
+            <span key={label} className="heatmap-view__month-header">
+              {label}
+            </span>
+          ))}
         </div>
-      </section>
-
-      <div className="heatmap-view__hint" role="status">
-        <p className="heatmap-view__hint-text">
-          Les jours colorés indiquent des notes. Cliquez sur un jour pour ouvrir le Mood Board.
-        </p>
-        <p className="heatmap-view__hint-demo">
-          Démo : seuls le <strong>1er</strong>, <strong>2</strong> et <strong>3 mars</strong> sont accessibles.
-        </p>
+        {Array.from({ length: 31 }, (_, dayIdx) => {
+          const dayNum = dayIdx + 1;
+          return (
+            <div key={dayNum} className="heatmap-view__row">
+              <span className="heatmap-view__day-label">{dayNum}</span>
+              {MONTH_NAMES.map((_, monthIdx) => {
+                const month = monthIdx + 1;
+                const days = daysInMonth(month);
+                const isInMonth = dayNum <= days;
+                const dateStr = isInMonth
+                  ? `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
+                  : '';
+                const entry = dateStr ? byDate[dateStr] ?? null : null;
+                const isToday = dateStr === todayStr;
+                const isFuture = dateStr > todayStr;
+                const canOpen = dateStr && !isFuture && accessibleSet.has(dateStr);
+                const hasColor = entry && entry.noteCount > 0;
+                return (
+                  <button
+                    key={month}
+                    type="button"
+                    className={`heatmap-view__cell ${!isInMonth ? 'heatmap-view__cell--empty' : ''} ${isToday ? 'heatmap-view__cell--today' : ''} ${isFuture ? 'heatmap-view__cell--future' : ''} ${hasColor && !canOpen ? 'heatmap-view__cell--locked' : ''}`}
+                    style={isInMonth ? { backgroundColor: getDayColor(entry) } : undefined}
+                    onClick={() => handleCellClick(dateStr)}
+                    disabled={!isInMonth || isFuture}
+                    title={
+                      dateStr
+                        ? canOpen
+                          ? (entry?.noteCount ? `${entry.noteCount} note(s)` : 'Ouvrir')
+                          : hasColor
+                            ? 'À partir du 1er mars'
+                            : dateStr
+                        : ''
+                    }
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

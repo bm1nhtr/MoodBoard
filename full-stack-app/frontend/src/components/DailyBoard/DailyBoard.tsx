@@ -1,6 +1,6 @@
 /**
- * Board du jour : 1 mood cho cả ngày, bảng trắng rộng hơn màn hình, zoom.
- * Premier accès : template 3 image + 2 texte + modal chỉ dẫn. Nút + mở menu (Image / Texte).
+ * Board du jour : 1 mood pour toute la journée, canvas plus large que l’écran, zoom.
+ * Premier accès : template 3 image + 2 texte + guide. Bouton + ouvre le menu (Cadre image / Cadre texte).
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef, type FC } from 'react';
@@ -19,38 +19,54 @@ import {
   DEFAULT_IMAGE_FRAME_SIZE,
   DEFAULT_TEXT_FRAME_SIZE,
 } from '../../constants/frameShapes';
+import { MOOD_VISUALS } from '../../constants/moodVisuals';
+import { getMockRoomMembers } from '../../services/mock/collab';
 import './DailyBoard.css';
 
 const SEEDED_KEY = 'moodboard_seeded_';
 const GUIDE_IMAGE_KEY = 'moodboard_guide_image';
 const GUIDE_TEXT_KEY = 'moodboard_guide_text';
 const GUIDE_FAB_KEY = 'moodboard_guide_fab';
+const GUIDE_COLLAB_KEY = 'moodboard_guide_collab';
 
-/** Template lần đầu vào board : 3 khung ảnh + 2 khung texte */
-function getTemplatePayloads(dayMood: MoodId): Omit<CreatePostPayload, 'boardDate'>[] {
+/** Moods variés pour démo "humeur par cadre" */
+const TEMPLATE_MOODS: MoodId[] = ['serenity', 'wonder', 'tenderness', 'longing', 'quiet'];
+
+/** Template au premier accès au board : 3 cadres image + 2 cadres texte (moods variés pour la démo collab). */
+function getTemplatePayloads(): Omit<CreatePostPayload, 'boardDate'>[] {
   return [
-    { mood: dayMood, text: '', shape: 'rectangle', frameType: 'image', x: 120, y: 120, width: 200, height: 180 },
-    { mood: dayMood, text: '', shape: 'circle', frameType: 'image', x: 380, y: 140, width: 180, height: 180 },
-    { mood: dayMood, text: '', shape: 'rectangle', frameType: 'image', x: 620, y: 100, width: 220, height: 160 },
-    { mood: dayMood, text: '', shape: 'rectangle', frameType: 'text', x: 140, y: 340, width: 240, height: 100 },
-    { mood: dayMood, text: '', shape: 'rectangle', frameType: 'text', x: 420, y: 320, width: 260, height: 110 },
+    { mood: TEMPLATE_MOODS[0], text: '', shape: 'rectangle', frameType: 'image', x: 120, y: 120, width: 200, height: 180 },
+    { mood: TEMPLATE_MOODS[1], text: '', shape: 'circle', frameType: 'image', x: 380, y: 140, width: 180, height: 180 },
+    { mood: TEMPLATE_MOODS[2], text: '', shape: 'rectangle', frameType: 'image', x: 620, y: 100, width: 220, height: 160 },
+    { mood: TEMPLATE_MOODS[3], text: '', shape: 'rectangle', frameType: 'text', x: 140, y: 340, width: 240, height: 100 },
+    { mood: TEMPLATE_MOODS[4], text: '', shape: 'rectangle', frameType: 'text', x: 420, y: 320, width: 260, height: 110 },
   ];
 }
 
 interface DailyBoardProps {
   boardDate: string;
   posts: Post[];
+  dayMood: MoodId;
+  onDayMoodChange: (mood: MoodId) => void;
   createPost: (payload: Omit<CreatePostPayload, 'boardDate'>) => Promise<Post>;
   updatePost: (id: string, updates: Partial<Pick<Post, 'x' | 'y' | 'width' | 'height' | 'imageUrl' | 'text' | 'zIndex'>>) => Promise<Post>;
+  /** En mode split (1/3 heatmap, 2/3 board), true si l’utilisateur a cliqué « plein écran ». */
+  isFullScreen?: boolean;
+  onExpandFullScreen?: () => void;
+  onCollapseFullScreen?: () => void;
 }
 
 const DailyBoard: FC<DailyBoardProps> = ({
   boardDate,
   posts,
+  dayMood,
+  onDayMoodChange,
   createPost,
   updatePost,
+  isFullScreen,
+  onExpandFullScreen,
+  onCollapseFullScreen,
 }) => {
-  const [dayMood, setDayMood] = useState<MoodId>('serenity');
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null);
@@ -60,18 +76,21 @@ const DailyBoard: FC<DailyBoardProps> = ({
   const fabRef = useRef<HTMLDivElement>(null);
   const selectedPost = posts.find((p) => p.id === selectedNoteId);
 
+  const mockMembers = useMemo(() => getMockRoomMembers(dayMood), [dayMood]);
+
   const sortedPosts = useMemo(
     () => [...posts].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0)),
     [posts]
   );
 
-  /** Étape du guide : image → texte → fab, chaque type une seule fois (localStorage) */
-  const guideStep = useMemo((): 'image' | 'text' | 'fab' | null => {
+  /** Étape du guide : image → texte → fab → collab (localStorage) */
+  const guideStep = useMemo((): 'image' | 'text' | 'fab' | 'collab' | null => {
     const hasImage = sortedPosts.some((p) => p.frameType === 'image');
     const hasText = sortedPosts.some((p) => p.frameType === 'text');
     if (hasImage && !localStorage.getItem(GUIDE_IMAGE_KEY)) return 'image';
     if (hasText && !localStorage.getItem(GUIDE_TEXT_KEY)) return 'text';
     if (!localStorage.getItem(GUIDE_FAB_KEY)) return 'fab';
+    if (!localStorage.getItem(GUIDE_COLLAB_KEY)) return 'collab';
     return null;
   }, [sortedPosts, guideVersion]);
 
@@ -86,6 +105,12 @@ const DailyBoard: FC<DailyBoardProps> = ({
         setGuideTargetRect(fabRef.current.getBoundingClientRect());
         return;
       }
+      if (guideStep === 'collab') {
+        const el = document.querySelector(`[data-guide-target="${guideStep}"]`);
+        if (el) setGuideTargetRect(el.getBoundingClientRect());
+        else setGuideTargetRect(null);
+        return;
+      }
       const el = document.querySelector(`[data-guide-target="${guideStep}"]`);
       if (el) setGuideTargetRect(el.getBoundingClientRect());
       else setGuideTargetRect(null);
@@ -94,13 +119,13 @@ const DailyBoard: FC<DailyBoardProps> = ({
     return () => clearTimeout(t);
   }, [guideStep, sortedPosts.length]);
 
-  /** Template 3 image + 2 text khi lần đầu vào board của ngày (ne pas sortir si posts.length > 0 avant la fin) */
+  /** Template 3 image + 2 texte au premier accès au board du jour (ne pas quitter si posts.length > 0 avant la fin). */
   useEffect(() => {
     if (!boardDate) return;
     const key = SEEDED_KEY + boardDate;
     if (localStorage.getItem(key)) return;
     localStorage.setItem(key, '1');
-    const payloads = getTemplatePayloads(dayMood);
+    const payloads = getTemplatePayloads();
     payloads.forEach((p) => createPost(p));
   }, [boardDate, dayMood, createPost]);
 
@@ -158,22 +183,24 @@ const DailyBoard: FC<DailyBoardProps> = ({
     return () => document.removeEventListener('click', closeFab);
   }, [fabMenuOpen]);
 
-  const GUIDE_KEYS: Record<'image' | 'text' | 'fab', string> = {
+  const GUIDE_KEYS: Record<'image' | 'text' | 'fab' | 'collab', string> = {
     image: GUIDE_IMAGE_KEY,
     text: GUIDE_TEXT_KEY,
     fab: GUIDE_FAB_KEY,
+    collab: GUIDE_COLLAB_KEY,
   };
 
-  const handleGuideClose = useCallback((step: 'image' | 'text' | 'fab') => {
+  const handleGuideClose = useCallback((step: 'image' | 'text' | 'fab' | 'collab') => {
     localStorage.setItem(GUIDE_KEYS[step], '1');
     setGuideVersion((v) => v + 1);
   }, []);
 
-  /** Réafficher le guide (réinitialise les 3 étapes) */
+  /** Réafficher le guide (réinitialise toutes les étapes) */
   const handleShowGuideAgain = useCallback(() => {
     localStorage.removeItem(GUIDE_IMAGE_KEY);
     localStorage.removeItem(GUIDE_TEXT_KEY);
     localStorage.removeItem(GUIDE_FAB_KEY);
+    localStorage.removeItem(GUIDE_COLLAB_KEY);
     setGuideVersion((v) => v + 1);
   }, []);
 
@@ -214,19 +241,60 @@ const DailyBoard: FC<DailyBoardProps> = ({
     <div className="daily-board">
       <header className="daily-board__header">
         <h2 className="daily-board__title">{dateLabel}</h2>
-        <div className="daily-board__mood">
-          <span className="daily-board__mood-label">Humeur du jour</span>
-          <MoodPicker value={dayMood} onChange={setDayMood} />
+        <div className="daily-board__mood-block" data-guide-target="collab">
+          <div className="daily-board__mood-row">
+            <span className="daily-board__mood-label">Humeurs du jour (démo collab)</span>
+            <div className="daily-board__mood-members">
+              {mockMembers.map((m) =>
+                m.isMe ? (
+                  <div key={m.id} className="daily-board__mood-member daily-board__mood-member--me">
+                    <span className="daily-board__mood-member-avatar daily-board__mood-member-avatar--me" aria-hidden>M</span>
+                    <span className="daily-board__mood-member-name">{m.name}</span>
+                    <MoodPicker value={dayMood} onChange={onDayMoodChange} />
+                  </div>
+                ) : (
+                  <div key={m.id} className="daily-board__mood-member" title={MOOD_VISUALS[m.mood].label}>
+                    <span className="daily-board__mood-member-avatar" style={{ backgroundColor: MOOD_VISUALS[m.mood].color }} aria-hidden>{m.name.slice(0, 1)}</span>
+                    <span className="daily-board__mood-member-dot" style={{ backgroundColor: MOOD_VISUALS[m.mood].color }} />
+                    <span className="daily-board__mood-member-name">{m.name}</span>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
         </div>
-        <button
-          type="button"
-          className="daily-board__help-btn"
-          onClick={handleShowGuideAgain}
-          aria-label="Voir le guide"
-          title="Comment déplacer, redimensionner, ajouter des cadres…"
-        >
-          ?
-        </button>
+        <div className="daily-board__header-actions">
+          {isFullScreen && onCollapseFullScreen ? (
+            <button
+              type="button"
+              className="daily-board__expand-btn"
+              onClick={onCollapseFullScreen}
+              aria-label="Revenir à la vue partagée"
+              title="Vue partagée (heatmap + board)"
+            >
+              ⊟ Vue partagée
+            </button>
+          ) : onExpandFullScreen ? (
+            <button
+              type="button"
+              className="daily-board__expand-btn"
+              onClick={onExpandFullScreen}
+              aria-label="Plein écran"
+              title="Agrandir le board en plein écran"
+            >
+              ⊞ Plein écran
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="daily-board__help-btn"
+            onClick={handleShowGuideAgain}
+            aria-label="Voir le guide"
+            title="Comment déplacer, redimensionner, ajouter des cadres…"
+          >
+            ?
+          </button>
+        </div>
       </header>
       <div className="daily-board__canvas-wrap">
         <div
@@ -250,7 +318,7 @@ const DailyBoard: FC<DailyBoardProps> = ({
               return (
                 <EmotionalNote
                   key={post.id}
-                  post={{ ...post, mood: dayMood }}
+                  post={{ ...post, mood: post.mood }}
                   onPositionChange={handlePositionChange}
                   onResize={handleResize}
                   onSelect={setSelectedNoteId}
@@ -329,9 +397,11 @@ const DailyBoard: FC<DailyBoardProps> = ({
                 ? 'Cadre image : glissez pour déplacer, redimensionnez par le coin bas-droit, clic droit pour l’ordre des calques, clic pour ajouter une image.'
                 : guideStep === 'text'
                   ? 'Cadre texte : cliquez pour éditer le texte.'
-                  : 'Utilisez le bouton + pour ajouter des cadres image ou texte.'
+                  : guideStep === 'fab'
+                    ? 'Utilisez le bouton + pour ajouter des cadres image ou texte.'
+                    : 'Humeurs du jour (démo collab) : vous et les autres membres du groupe avez chacun une humeur. Chaque cadre affiche l\'avatar de son auteur (Moi, Alice, Bob).'
             }
-            buttonLabel={guideStep === 'fab' ? "J'ai compris" : 'Suivant'}
+            buttonLabel={guideStep === 'collab' ? "J'ai compris" : 'Suivant'}
             onClose={() => handleGuideClose(guideStep)}
           />
         </>

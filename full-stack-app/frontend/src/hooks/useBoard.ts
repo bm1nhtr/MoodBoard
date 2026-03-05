@@ -5,19 +5,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Post } from '../types/posts';
 import type { CreatePostPayload } from '../types/posts';
-import { getPostsByDate, addPost, updatePost as updatePostApi } from '../services/mock/posts';
+import type { MoodId } from '../types/posts';
+import { getPostsByDate, addPost, updatePost as updatePostApi, getBoardMood, setBoardMood as setBoardMoodApi } from '../services/mock/posts';
 
 export function useBoard(boardDate: string | null) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [boardMood, setBoardMoodState] = useState<MoodId>('serenity');
 
   const load = useCallback(() => {
     if (!boardDate) {
       setPosts([]);
+      setBoardMoodState('serenity');
       setLoading(false);
       return;
     }
     setLoading(true);
+    setBoardMoodState(getBoardMood(boardDate));
     getPostsByDate(boardDate)
       .then(setPosts)
       .catch(console.error)
@@ -27,6 +31,12 @@ export function useBoard(boardDate: string | null) {
   useEffect(() => {
     load();
   }, [load]);
+
+  const setBoardMood = useCallback((mood: MoodId) => {
+    if (!boardDate) return;
+    setBoardMoodApi(boardDate, mood);
+    setBoardMoodState(mood);
+  }, [boardDate]);
 
   const createPost = useCallback(
     (payload: Omit<CreatePostPayload, 'boardDate'>) => {
@@ -46,5 +56,5 @@ export function useBoard(boardDate: string | null) {
     });
   }, []);
 
-  return { posts, loading, createPost, updatePost, refresh: load };
+  return { posts, loading, boardMood, setBoardMood, createPost, updatePost, refresh: load };
 }

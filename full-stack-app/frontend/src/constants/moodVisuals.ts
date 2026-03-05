@@ -1,11 +1,11 @@
 /**
- * 1 màu = 1 label = 1 trạng thái cảm xúc (cố định, tránh biais).
- * Palette : xanh lá → nâu (màu họ hàng, dễ nhìn).
+ * 1 couleur = 1 label = 1 état émotionnel (fixe, pour éviter les biais).
+ * Palette : vert → marron (couleurs proches, lisibles).
  */
 
 import type { MoodId, MoodVisual } from '../types/posts';
 
-/** Palette xanh lá cây → nâu (green to brown), 1 couleur = 1 état émotionnel labellé */
+/** Palette vert → marron (green to brown), 1 couleur = 1 état émotionnel labellé. */
 export const MOOD_VISUALS: Record<MoodId, MoodVisual> = {
   serenity: {
     id: 'serenity',

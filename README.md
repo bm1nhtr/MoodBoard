@@ -6,7 +6,7 @@ Mur de post-it numériques pour partager des pensées et humeurs. MVP frontend a
 
 ### Frontend (MVP actuel)
 
-L’application tourne sans backend : les posts sont simulés en mémoire.
+L’application tourne sans backend : les posts sont simulés en mémoire (mock).
 
 ```bash
 cd full-stack-app/frontend
@@ -20,16 +20,4 @@ Ouvre [http://localhost:5173](http://localhost:5173) dans le navigateur.
 
 - `npm run build` — build de production
 - `npm run preview` — prévisualiser le build
-- `npm run lint` — linter le code
-
-### Backend (optionnel)
-
-Pour utiliser l’API users existante plus tard :
-
-```bash
-cd full-stack-app/backend
-npm install
-npm run dev
-```
-
-Le serveur écoute sur [http://localhost:3000](http://localhost:3000).
+- `npm run lint` — linter le code (frontend uniquement)

@@ -1,4 +1,4 @@
-/* Couleur + label pour chaque trạng thái — tránh biais */
+/* Couleur + label pour chaque état émotionnel (éviter les biais) */
 
 .mood-picker {
   display: flex;

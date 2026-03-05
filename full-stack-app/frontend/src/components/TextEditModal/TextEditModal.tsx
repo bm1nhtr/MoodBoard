@@ -1,5 +1,5 @@
 /**
- * Modal éditer texte d’un khung texte (clic sur cadre texte)
+ * Modal pour éditer le texte d’un cadre texte (clic sur un cadre texte).
  */
 
 import { useState, useEffect, useCallback, type FC } from 'react';

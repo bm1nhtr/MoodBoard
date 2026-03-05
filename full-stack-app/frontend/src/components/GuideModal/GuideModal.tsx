@@ -1,5 +1,5 @@
 /**
- * Modal chỉ dẫn lần đầu : kéo thả, resize, clic droit layer, sửa, xóa, thêm khung
+ * Modal de guide au premier accès : glisser, redimensionner, clic droit pour les calques, modifier, supprimer, ajouter un cadre.
  */
 
 import type { FC } from 'react';

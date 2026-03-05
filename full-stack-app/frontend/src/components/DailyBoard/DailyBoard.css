@@ -1,16 +1,22 @@
-/* Board du jour : bảng trắng rộng hơn màn hình, zoom, 1 mood du jour */
+/* Board du jour : canvas plus large que l’écran, zoom, 1 mood du jour */
 
 .daily-board {
   position: relative;
-  padding-bottom: 5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 0.75rem;
+  padding-bottom: 4rem;
 }
 
 .daily-board__header {
+  flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .daily-board__title {
@@ -21,20 +27,101 @@
   text-transform: capitalize;
 }
 
-.daily-board__mood {
+.daily-board__mood-block {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
   flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 1rem;
+}
+
+.daily-board__mood-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.daily-board__mood-members {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.daily-board__mood-member {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  color: var(--color-text);
+}
+
+.daily-board__mood-member--me {
+  border-color: var(--color-accent);
+}
+
+.daily-board__mood-member-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.daily-board__mood-member-avatar--me {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.daily-board__mood-member-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.daily-board__mood-member-name {
+  font-weight: 500;
 }
 
 .daily-board__mood-label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--color-muted);
 }
 
-.daily-board__help-btn {
+.daily-board__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-left: auto;
+}
+
+.daily-board__expand-btn {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.daily-board__expand-btn:hover {
+  background: var(--color-bg-hover);
+}
+
+.daily-board__help-btn {
   width: 2rem;
   height: 2rem;
   border: 1px solid var(--color-border);
@@ -52,11 +139,12 @@
   border-color: var(--color-accent);
 }
 
-/* Bảng trắng : overflow scroll, rộng hơn màn hình */
+/* Canvas : overflow scroll, plus large que l’écran, occupe l’espace restant */
 .daily-board__canvas-wrap {
+  flex: 1;
+  min-height: 0;
   overflow: auto;
   width: 100%;
-  max-height: 70vh;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #fafaf8;
@@ -74,9 +162,9 @@
   background: #fafaf8;
 }
 
-/* Zoom */
+/* Zoom : positionné dans la vue board (pas sur la heatmap) */
 .daily-board__zoom {
-  position: fixed;
+  position: absolute;
   bottom: 1.5rem;
   left: 1rem;
   display: flex;
@@ -106,9 +194,9 @@
   background: var(--color-accent-soft);
 }
 
-/* FAB unique : clic ouvre menu Cadre image / Cadre texte */
+/* FAB : dans la vue board uniquement */
 .daily-board__fab-wrap {
-  position: fixed;
+  position: absolute;
   bottom: 1.5rem;
   right: 1.5rem;
   display: flex;
@@ -168,7 +256,7 @@
   transform: scale(0.98);
 }
 
-/* Fond assombri pendant le guide pas à pas (flèche vers chaque type de khung) */
+/* Fond assombri pendant le guide pas à pas (flèche vers chaque type de cadre) */
 .daily-board__guide-backdrop {
   position: fixed;
   inset: 0;

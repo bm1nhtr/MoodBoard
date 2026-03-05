@@ -1,6 +1,6 @@
 /**
- * Modal : ajouter image (tự do) et/ou texte. Moodboard ảnh = người dùng tự thêm ảnh (URL).
- * Không bắt buộc ghi note khi chọn ảnh — ảnh hoặc texte, tùy ý.
+ * Modal : ajouter une image (libre) et/ou du texte. Moodboard = l’utilisateur ajoute ses images (URL).
+ * Pas obligatoire de saisir une note en choisissant une image — image ou texte, au choix.
  */
 
 import { useState, useCallback, type FC } from 'react';
@@ -92,7 +92,7 @@ const CreatePostModal: FC<CreatePostModalProps> = ({ isOpen, onClose, onSubmit }
           </button>
         </header>
         <form onSubmit={handleSubmit} className="create-post-modal__form">
-          {/* Forme du khung : tròn, trái tim, chữ nhật */}
+          {/* Forme du cadre : cercle, cœur, rectangle */}
           <div className="create-post-modal__shape-section">
             <span className="create-post-modal__legend">Forme du cadre</span>
             <div className="create-post-modal__shape-list">

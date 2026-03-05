@@ -1,5 +1,5 @@
 /**
- * Khung (image ou texte) : kéo thả, resize. Ảnh cắt theo khung. 1 mood = mood du jour (board).
+ * Cadre (image ou texte) : glisser, redimensionner. L’image est rognée au cadre. 1 mood = mood du jour (board).
  */
 
 import { useRef, useCallback, useState, useEffect, type FC } from 'react';
@@ -97,6 +97,7 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
   const pos = dragPosition ?? { x: post.x, y: post.y };
   const isImageFrame = post.frameType === 'image';
   const hasImage = Boolean(post.imageUrl);
+  const authorBadge = post.createdBy != null ? { letter: post.createdBy === 'me' ? 'M' : post.createdBy === 'alice' ? 'A' : 'B', name: post.createdBy === 'me' ? 'Moi' : post.createdBy === 'alice' ? 'Alice' : 'Bob' } : null;
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
@@ -143,12 +144,16 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
             )}
           </div>
         )}
-        {!isImageFrame && (
-          <time className="emotional-note__time" dateTime={post.createdAt}>
-            {formatTime(post.createdAt)}
-          </time>
-        )}
       </div>
+      {authorBadge && (
+        <span
+          className={`emotional-note__author-badge emotional-note__author-badge--${post.createdBy}`}
+          title={authorBadge.name}
+          aria-hidden
+        >
+          {authorBadge.letter}
+        </span>
+      )}
       <div
         className="emotional-note__resize-handle"
         onMouseDown={handleResizeStart}
@@ -157,9 +162,5 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
     </article>
   );
 };
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-}
 
 export default EmotionalNote;

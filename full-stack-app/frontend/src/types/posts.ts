@@ -3,7 +3,7 @@
  * Board quotidien, notes positionnées, humeur = identité visuelle (couleur + effet)
  */
 
-/** 5 trạng thái cảm xúc — mỗi id tương ứng 1 màu, 1 biểu cảm */
+/** 5 états émotionnels — chaque id correspond à une couleur et une expression. */
 export type MoodId = 'serenity' | 'wonder' | 'tenderness' | 'longing' | 'quiet';
 
 /** Option pour listes/legacy (label optionnel) */
@@ -12,24 +12,24 @@ export interface MoodOption {
   label: string;
 }
 
-/** 1 mood = 1 màu = 1 trạng thái cảm xúc ; label cố định để tránh biais (màu hồng/xanh tùy ý) */
+/** 1 mood = 1 couleur = 1 état émotionnel ; label fixe pour éviter les biais d’interprétation. */
 export interface MoodVisual {
   id: MoodId;
-  /** Libellé du trạng thái cảm xúc — luôn hiển thị để mọi người dùng cùng nghĩa */
+  /** Libellé de l’état émotionnel — toujours affiché pour un sens partagé. */
   label: string;
-  /** Màu đại diện cho trạng thái cảm xúc */
+  /** Couleur représentant l’état émotionnel. */
   color: string;
   /** Classe CSS (glow, bord, texture) */
   className: string;
 }
 
-/** Forme du khung — tròn, trái tim, chữ nhật */
+/** Forme du cadre — cercle, cœur, rectangle. */
 export type FrameShape = 'circle' | 'heart' | 'rectangle';
 
-/** Type de khung : ảnh (user thêm ảnh) hoặc texte (user thêm texte) */
+/** Type de cadre : image (l’utilisateur ajoute une image) ou texte (l’utilisateur ajoute du texte). */
 export type FrameType = 'image' | 'text';
 
-/** Khung sur le board : kéo thả, resize, ảnh cắt theo khung. Mood = 1 ngày 1 mood (board). */
+/** Cadre sur le board : glisser, redimensionner, image rognée au cadre. 1 mood par jour (board). */
 export interface Post {
   id: string;
   text: string;
@@ -42,14 +42,16 @@ export interface Post {
   width: number;
   height: number;
   shape: FrameShape;
-  /** Khung ảnh ou khung texte */
+  /** Cadre image ou cadre texte. */
   frameType: FrameType;
   imageUrl?: string;
   /** Ordre d’empilement (clic droit : devant / derrière) */
   zIndex: number;
+  /** Mock collab : auteur du cadre (démo à partir du 1er mars) */
+  createdBy?: 'me' | 'alice' | 'bob';
 }
 
-/** Payload pour créer un khung (image ou texte) */
+/** Payload pour créer un cadre (image ou texte). */
 export interface CreatePostPayload {
   text: string;
   mood: MoodId;
@@ -62,6 +64,14 @@ export interface CreatePostPayload {
   height?: number;
   imageUrl?: string;
   zIndex?: number;
+}
+
+/** Membre du groupe (mock collab) : humeur par utilisateur pour un jour */
+export interface MockRoomMember {
+  id: string;
+  name: string;
+  isMe: boolean;
+  mood: MoodId;
 }
 
 /** Entrée heatmap : intensité émotionnelle d’un jour (pour le calendrier) */

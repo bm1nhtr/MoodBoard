@@ -1,5 +1,5 @@
 /**
- * Sélecteur d’humeur : couleur + label (1 màu = 1 trạng thái cố định, tránh biais)
+ * Sélecteur d’humeur : couleur + label (1 couleur = 1 état fixe, pour éviter les biais)
  */
 
 import type { FC } from 'react';

@@ -1,17 +1,33 @@
 /**
  * Service mock pour le Shared Emotional Whiteboard
- * Données en mémoire : posts par boardDate, heatmap mensuelle
+ * À partir du 1er mars : données « réelles » (realPosts). Avant : mock heatmap uniquement (couleurs).
  */
 
-import type { Post, MoodId, CreatePostPayload, DayHeatmapEntry } from '../../types/posts';
+import type { Post, MoodId, CreatePostPayload, DayHeatmapEntry, MockRoomMember } from '../../types/posts';
 import type { MoodOption } from '../../types/posts';
 import { MOOD_IDS, MOOD_VISUALS } from '../../constants/moodVisuals';
 import { DEFAULT_FRAME_SIZE } from '../../constants/frameShapes';
 
-/** Pour composants legacy — labels depuis moodVisuals (1 màu = 1 label) */
+const year = new Date().getFullYear();
+/** À partir de cette date on utilise les données « réelles » ; avant = mock heatmap seulement */
+export const DATA_CUTOFF_DATE = `${year}-03-01`;
+
+/** Jours accessibles (ouvrir le board) : du 1er mars à aujourd’hui */
+export function getAccessibleDates(): string[] {
+  const cutoff = new Date(DATA_CUTOFF_DATE);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const out: string[] = [];
+  for (let d = new Date(cutoff); d <= today; d.setDate(d.getDate() + 1)) {
+    out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+/** Pour composants legacy — labels depuis moodVisuals (1 couleur = 1 label). */
 export const MOOD_OPTIONS: MoodOption[] = MOOD_IDS.map((id) => ({ id, label: MOOD_VISUALS[id].label }));
 
-/** Exemples d’images pour le moodboard — người dùng có thể dùng ảnh tự thiết kế (URL bất kỳ) */
+/** Exemples d’images pour le moodboard (l’utilisateur peut utiliser n’importe quelle URL) */
 export const MOCK_IMAGES = [
   { id: 'img-1', url: 'https://picsum.photos/seed/mood1/300/200', label: 'Paysage calme' },
   { id: 'img-2', url: 'https://picsum.photos/seed/mood2/300/200', label: 'Nature' },
@@ -21,7 +37,7 @@ export const MOCK_IMAGES = [
   { id: 'img-6', url: 'https://picsum.photos/seed/mood6/300/200', label: 'Évasion' },
 ] as const;
 
-/** Données initiales : khung với shape + size (kéo thả, resize, ấn chọn ảnh) */
+/** Données initiales : cadres avec forme et taille (glisser, redimensionner, clic pour choisir une image). */
 const initialPosts: Post[] = [
   {
     id: '1',
@@ -168,7 +184,7 @@ function generateHeatmapMockPosts(year: number): Post[] {
     const daysInMonth = new Date(year, month, 0).getDate();
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      if (dateStr > todayStr) continue; // ne pas mock les jours à venir
+      if (dateStr >= DATA_CUTOFF_DATE || dateStr > todayStr) continue; // avant 1er mars + pas futur
       const count = 1 + Math.floor((day + month * 7) % 3); // 1 à 3 posts par jour, déterministe
       for (let i = 0; i < count; i++) {
         const mood = moods[(day + month + i) % moods.length];
@@ -194,29 +210,115 @@ function generateHeatmapMockPosts(year: number): Post[] {
 
 const heatmapMockPosts = generateHeatmapMockPosts(new Date().getFullYear());
 
-let postsStore: Post[] = [...initialPosts, ...heatmapMockPosts];
-let postIdCounter = 0;
+/**
+ * Données « réelles » à partir du 1er mars. Jours déjà passés en mars : images mock pour la visualisation.
+ */
+function seedMarchRealPosts(): Post[] {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const out: Post[] = [];
+  let z = 0;
+  for (let day = 1; day <= 31; day++) {
+    const dateStr = `${year}-03-${String(day).padStart(2, '0')}`;
+    if (dateStr > todayStr) break;
+    const moods: MoodId[] = ['serenity', 'wonder', 'tenderness', 'longing', 'quiet'];
+    const mood1 = moods[day % moods.length];
+    const mood2 = moods[(day + 1) % moods.length];
+    const mood3 = moods[(day + 2) % moods.length];
+    out.push({
+      id: `real-mar-${day}-img1`,
+      text: '',
+      mood: mood1,
+      createdAt: `${dateStr}T09:00:00.000Z`,
+      boardDate: dateStr,
+      x: 100,
+      y: 80,
+      width: 200,
+      height: 180,
+      shape: 'rectangle',
+      frameType: 'image',
+      imageUrl: MOCK_IMAGES[day % MOCK_IMAGES.length].url,
+      zIndex: z++,
+      createdBy: 'me',
+    });
+    out.push({
+      id: `real-mar-${day}-img2`,
+      text: '',
+      mood: mood2,
+      createdAt: `${dateStr}T10:00:00.000Z`,
+      boardDate: dateStr,
+      x: 340,
+      y: 100,
+      width: 180,
+      height: 180,
+      shape: 'circle',
+      frameType: 'image',
+      imageUrl: MOCK_IMAGES[(day + 1) % MOCK_IMAGES.length].url,
+      zIndex: z++,
+      createdBy: 'alice',
+    });
+    out.push({
+      id: `real-mar-${day}-txt`,
+      text: day === 1 ? 'Premier jour de mars.' : day === 2 ? 'Petit moment de calme.' : 'Une journée comme les autres.',
+      mood: mood3,
+      createdAt: `${dateStr}T11:00:00.000Z`,
+      boardDate: dateStr,
+      x: 120,
+      y: 320,
+      width: 220,
+      height: 100,
+      shape: 'rectangle',
+      frameType: 'text',
+      zIndex: z++,
+      createdBy: 'bob',
+    });
+  }
+  return out;
+}
+
+let realPosts: Post[] = seedMarchRealPosts();
+let postIdCounter = 1000;
+
+/** Humeur du jour par board (à partir du 1er mars). Persiste quand l’utilisateur change. */
+const boardMoodsStore: Record<string, MoodId> = {};
 
 function nextPostId(): string {
   postIdCounter += 1;
   return `mock-${Date.now()}-${postIdCounter}`;
 }
 
+/** Récupère l’humeur du jour pour un board (sauvegardée ou déduite du premier post). */
+export function getBoardMood(boardDate: string): MoodId {
+  if (boardDate < DATA_CUTOFF_DATE) return 'serenity';
+  if (boardMoodsStore[boardDate]) return boardMoodsStore[boardDate];
+  const first = realPosts.find((p) => p.boardDate === boardDate);
+  return first?.mood ?? 'serenity';
+}
+
+/** Enregistre l’humeur du jour pour un board (changement par l’utilisateur). */
+export function setBoardMood(boardDate: string, mood: MoodId): void {
+  if (boardDate < DATA_CUTOFF_DATE) return;
+  boardMoodsStore[boardDate] = mood;
+}
+
 /**
  * Récupère les notes du board d’un jour donné
  */
 export function getPostsByDate(boardDate: string): Promise<Post[]> {
-  const list = postsStore.filter((p) => p.boardDate === boardDate);
+  if (boardDate < DATA_CUTOFF_DATE) return Promise.resolve([]);
+  const list = realPosts.filter((p) => p.boardDate === boardDate);
   return Promise.resolve([...list]);
 }
 
 /**
- * Ajoute une note (khung avec shape, size, position)
+ * Ajoute une note. Uniquement pour boardDate >= 1er mars (données réelles).
  */
 export function addPost(payload: CreatePostPayload): Promise<Post> {
+  if (payload.boardDate < DATA_CUTOFF_DATE) {
+    return Promise.reject(new Error('Ajout possible uniquement à partir du 1er mars.'));
+  }
   const x = payload.x ?? 60 + Math.random() * 200;
   const y = payload.y ?? 80 + Math.random() * 180;
-  const maxZ = postsStore.length > 0 ? Math.max(...postsStore.map((p) => p.zIndex)) : -1;
+  const maxZ = realPosts.length > 0 ? Math.max(...realPosts.map((p) => p.zIndex)) : -1;
   const post: Post = {
     id: nextPostId(),
     text: (payload.text ?? '').slice(0, 200),
@@ -231,20 +333,21 @@ export function addPost(payload: CreatePostPayload): Promise<Post> {
     frameType: payload.frameType ?? 'image',
     imageUrl: payload.imageUrl,
     zIndex: payload.zIndex ?? maxZ + 1,
+    createdBy: 'me',
   };
-  postsStore = [post, ...postsStore];
+  realPosts = [post, ...realPosts];
   return Promise.resolve(post);
 }
 
 /**
- * Met à jour une note (position, size, imageUrl, etc.) — pour kéo thả, resize, chọn ảnh
+ * Met à jour une note (données réelles, à partir du 1er mars).
  */
 export function updatePost(id: string, updates: Partial<Omit<Post, 'id'>>): Promise<Post> {
-  const index = postsStore.findIndex((p) => p.id === id);
-  if (index === -1) return Promise.reject(new Error('Post not found'));
-  const current = postsStore[index];
+  const index = realPosts.findIndex((p) => p.id === id);
+  if (index === -1) return Promise.reject(new Error('Post introuvable'));
+  const current = realPosts[index];
   const updated: Post = { ...current, ...updates };
-  postsStore = [...postsStore.slice(0, index), updated, ...postsStore.slice(index + 1)];
+  realPosts = [...realPosts.slice(0, index), updated, ...realPosts.slice(index + 1)];
   return Promise.resolve(updated);
 }
 
@@ -262,7 +365,8 @@ export function getMonthHeatmap(year: number, month: number): Promise<DayHeatmap
     byDay[dateStr] = { count: 0, moods: [] };
   }
 
-  postsStore.forEach((p) => {
+  const allForHeatmap: Post[] = [...heatmapMockPosts, ...initialPosts, ...realPosts];
+  allForHeatmap.forEach((p) => {
     if (!byDay[p.boardDate]) return;
     byDay[p.boardDate].count += 1;
     byDay[p.boardDate].moods.push(p.mood);
@@ -303,6 +407,7 @@ export async function getYearHeatmap(year: number): Promise<Record<number, DayHe
  * Réinitialise le store (démo / tests)
  */
 export function resetMockPosts(): void {
-  postsStore = [...initialPosts, ...heatmapMockPosts];
-  postIdCounter = 0;
+  realPosts = seedMarchRealPosts();
+  postIdCounter = 1000;
+  Object.keys(boardMoodsStore).forEach((k) => delete boardMoodsStore[k]);
 }

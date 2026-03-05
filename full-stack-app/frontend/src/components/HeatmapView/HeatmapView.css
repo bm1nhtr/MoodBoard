@@ -1,69 +1,88 @@
-/* Vue principale : heatmap 12 mois en lignes, couleurs par jour */
+/* Heatmap verticale (transposée) : ~1/3 largeur, colonnes = mois, lignes = jour */
 
 .heatmap-view {
-  padding-bottom: 2rem;
+  padding: 0.5rem 0;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.heatmap-view__section {
-  margin-bottom: 2rem;
-}
-
-.heatmap-view__section-title {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
+.heatmap-view--vertical .heatmap-view__section-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text);
 }
 
+/* Grille sans scroll : 31 lignes partagent la hauteur disponible */
 .heatmap-view__grid-wrap {
-  overflow-x: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-bg);
-  padding: 0.5rem;
+  padding: 0.35rem;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.heatmap-view__row {
+.heatmap-view__grid-wrap--transpose {
+  min-width: 100%;
+}
+
+/* Header fixe, 31 lignes de jours = hauteur égale (flex) */
+.heatmap-view__row--header {
+  flex: 0 0 auto;
+}
+
+.heatmap-view--vertical .heatmap-view__row:not(.heatmap-view__row--header) {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.heatmap-view--vertical .heatmap-view__row {
   display: grid;
-  grid-template-columns: 2.5rem repeat(31, minmax(0.45rem, 1fr));
+  grid-template-columns: 1.5rem repeat(12, minmax(0.5rem, 1fr));
   gap: 2px;
-  align-items: center;
-  min-height: 1.75rem;
+  align-items: stretch;
+  min-height: 0;
 }
 
-.heatmap-view__row--header .heatmap-view__day-header {
+.heatmap-view__month-header {
   font-size: 0.55rem;
+  font-weight: 600;
   color: var(--color-muted);
   text-align: center;
-  line-height: 1.2;
 }
 
-.heatmap-view__month-label {
-  font-size: 0.7rem;
-  font-weight: 500;
+.heatmap-view__day-label {
+  font-size: 0.6rem;
   color: var(--color-text);
   text-align: right;
-  padding-right: 0.35rem;
+  padding-right: 0.25rem;
 }
 
-.heatmap-view__month-label--header {
+.heatmap-view__day-label--header {
   visibility: hidden;
 }
 
 .heatmap-view__cell {
-  aspect-ratio: 1;
   min-width: 0;
-  min-height: 0.9rem;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
   border: none;
   border-radius: 2px;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
   background: var(--color-bg);
 }
 
 .heatmap-view__cell:hover:not(:disabled) {
-  transform: scale(1.15);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  transform: scale(1.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .heatmap-view__cell--empty {
@@ -77,7 +96,6 @@
   cursor: not-allowed;
 }
 
-/* Jour coloré mais non accessible en démo (mock couleur uniquement) */
 .heatmap-view__cell--locked {
   cursor: default;
 }
@@ -87,7 +105,6 @@
   box-shadow: none;
 }
 
-/* Ô hôm nay : nổi bật, animation nảy nhẹ */
 .heatmap-view__cell--today {
   outline: 2px solid var(--color-accent);
   outline-offset: 1px;
@@ -95,14 +112,8 @@
 }
 
 @keyframes heatmap-today-pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(122, 139, 109, 0.35);
-  }
-  50% {
-    transform: scale(1.2);
-    box-shadow: 0 0 0 4px rgba(122, 139, 109, 0.2);
-  }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(122, 139, 109, 0.35); }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 3px rgba(122, 139, 109, 0.2); }
 }
 
 .heatmap-view__cell--today:hover:not(:disabled) {
@@ -110,38 +121,8 @@
   transform: scale(1.2);
 }
 
-/* Thẻ hướng dẫn sous la heatmap */
-.heatmap-view__hint {
-  margin-top: 1rem;
-  padding: 0.75rem 1rem;
-  background: var(--color-accent-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-
-.heatmap-view__hint-text {
-  margin: 0 0 0.25rem;
-  font-size: 0.875rem;
-  color: var(--color-text);
-}
-
-.heatmap-view__hint-demo {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--color-muted);
-}
-
-.heatmap-view__hint-demo strong {
-  color: var(--color-text);
-}
-
-@media (min-width: 600px) {
-  .heatmap-view__row {
-    grid-template-columns: 3.5rem repeat(31, minmax(0.6rem, 1fr));
-    min-height: 2rem;
-  }
-
-  .heatmap-view__cell {
-    min-height: 1rem;
+@media (min-width: 480px) {
+  .heatmap-view--vertical .heatmap-view__row {
+    grid-template-columns: 1.75rem repeat(12, minmax(0.6rem, 1fr));
   }
 }
