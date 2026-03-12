@@ -1,6 +1,6 @@
 import type { User } from '../../types/users';
 
-// Define the shape of the JSON your Express route sends
+/** Forme de la réponse JSON renvoyée par la route Express. */
 interface GetUsersResponse {
   message: string;
   users: User[];
@@ -8,12 +8,9 @@ interface GetUsersResponse {
 
 export async function getUsers(): Promise<User[]> {
   const res = await fetch('http://localhost:3000/api/users');
-  
-  if (!res.ok) throw new Error('Failed to fetch users');
 
-  // 1. Parse the full object
+  if (!res.ok) throw new Error('Échec de la récupération des utilisateurs');
+
   const data: GetUsersResponse = await res.json();
-    
-  // 2. Return ONLY the users array to your component
   return data.users; 
 }

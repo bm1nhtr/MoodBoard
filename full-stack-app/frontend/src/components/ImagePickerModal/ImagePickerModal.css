@@ -1,0 +1,147 @@
+/* Modal de choix d’image : fichier local ou lien URL */
+
+.image-picker-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.image-picker-modal--open {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+}
+
+.image-picker-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.image-picker-modal__panel {
+  position: relative;
+  width: 90%;
+  max-width: 24rem;
+  background: var(--color-bg);
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.image-picker-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.image-picker-modal__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.image-picker-modal__close {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.image-picker-modal__close:hover {
+  color: var(--color-text);
+  background: var(--color-bg-hover);
+}
+
+.image-picker-modal__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.image-picker-modal__tab {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.image-picker-modal__tab--active {
+  color: var(--color-accent);
+  font-weight: 500;
+  border-bottom: 2px solid var(--color-accent);
+}
+
+.image-picker-modal__body {
+  padding: 1.25rem;
+}
+
+.image-picker-modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.image-picker-modal__file-input {
+  display: none;
+}
+
+.image-picker-modal__file-btn {
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.image-picker-modal__file-btn:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.image-picker-modal__input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.image-picker-modal__submit {
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: white;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.image-picker-modal__submit:hover {
+  opacity: 0.92;
+}
+
+.image-picker-modal__error {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: #c00;
+}
