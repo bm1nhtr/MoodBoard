@@ -6,6 +6,7 @@
 import type { FC } from 'react';
 import type { Post } from '../../types/posts';
 import { MOOD_OPTIONS } from '../../services/mock/posts';
+import { MOOD_VISUALS } from '../../constants/moodVisuals';
 import './PostCard.css';
 
 interface PostCardProps {
@@ -31,7 +32,7 @@ const PostCard: FC<PostCardProps> = ({ post }) => {
   return (
     <article
       className="post-card"
-      style={{ backgroundColor: post.color }}
+      style={{ backgroundColor: MOOD_VISUALS[post.mood].color }}
     >
       <p className="post-card__text">{post.text}</p>
       <footer className="post-card__footer">

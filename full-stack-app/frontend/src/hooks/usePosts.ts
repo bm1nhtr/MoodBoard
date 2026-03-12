@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Post, MoodId } from '../types/posts';
-import { getPosts, addPost } from '../services/mock/posts';
+import { getPostsByDate, addPost } from '../services/mock/posts';
 import type { CreatePostPayload } from '../types/posts';
 
 export function usePosts() {
@@ -15,7 +15,8 @@ export function usePosts() {
 
   const loadPosts = useCallback(() => {
     setLoading(true);
-    getPosts()
+    const today = new Date().toISOString().slice(0, 10);
+    getPostsByDate(today)
       .then(setPosts)
       .catch(console.error)
       .finally(() => setLoading(false));

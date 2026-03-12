@@ -1,19 +1,31 @@
 /**
- * Point d’entrée : Shared Emotional Whiteboard
- * Vue principale = heatmap 12 mois + accès boards (scroll). Clic jour → board du jour
+ * Point d'entrée : Shared Emotional Whiteboard
+ * Vue principale = heatmap 12 mois + accès boards. Clic jour → board du jour.
  */
 
 import { useState, useMemo, useEffect } from 'react';
+import { useAuth } from './hooks/useAuth';
 import { useBoard } from './hooks/useBoard';
 import { useYearHeatmap } from './hooks/useYearHeatmap';
-import { getAccessibleDates } from './services/mock/posts';
 import LoginPage from './components/LoginPage/LoginPage';
 import HeatmapView from './components/HeatmapView/HeatmapView';
 import DailyBoard from './components/DailyBoard/DailyBoard';
 import './App.css';
 
+/** Génère tous les jours de Jan 1 de l'année en cours à aujourd'hui */
+function getAccessibleDates(): string[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(today.getFullYear(), 0, 1);
+  const dates: string[] = [];
+  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates.reverse();
+}
+
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, loading: authLoading, logout } = useAuth();
 
   const now = useMemo(() => new Date(), []);
   const accessibleDates = useMemo(() => getAccessibleDates(), []);
@@ -26,28 +38,38 @@ function App() {
 
   const year = now.getFullYear();
   const { heatmapByMonth, loading: heatmapLoading, refresh: refreshHeatmap } = useYearHeatmap(year);
-  const { posts, loading: boardLoading, boardMood, setBoardMood, createPost, updatePost } = useBoard(selectedDate);
+  const { posts, loading: boardLoading, boardMood, setBoardMood, createPost, updatePost, deletePost } = useBoard(selectedDate, user?.id);
 
   useEffect(() => {
     if (selectedDate === null) refreshHeatmap();
   }, [selectedDate, refreshHeatmap]);
 
-  if (!isLoggedIn) {
-    return <LoginPage onSignInWithGoogle={() => setIsLoggedIn(true)} />;
+  if (authLoading) {
+    return <div className="app__loading-screen">Chargement…</div>;
+  }
+
+  if (!user) {
+    return <LoginPage />;
   }
 
   return (
     <div className="app">
       <header className="app__header">
         <h1 className="app__title">Mood Board</h1>
-        <button
-          type="button"
-          className="app__logout"
-          onClick={() => setIsLoggedIn(false)}
-          aria-label="Se déconnecter"
-        >
-          Déconnexion
-        </button>
+        <div className="app__header-user">
+          {user.picture && (
+            <img src={user.picture} alt={user.name} className="app__user-avatar" referrerPolicy="no-referrer" />
+          )}
+          <span className="app__user-name">{user.name}</span>
+          <button
+            type="button"
+            className="app__logout"
+            onClick={logout}
+            aria-label="Se déconnecter"
+          >
+            Déconnexion
+          </button>
+        </div>
       </header>
 
       {heatmapLoading && !boardExpanded && <p className="app__loading">Chargement…</p>}
@@ -77,6 +99,7 @@ function App() {
                   onDayMoodChange={setBoardMood}
                   createPost={createPost}
                   updatePost={updatePost}
+                  deletePost={deletePost}
                   isFullScreen={boardExpanded}
                   onExpandFullScreen={() => setBoardExpanded(true)}
                   onCollapseFullScreen={() => setBoardExpanded(false)}

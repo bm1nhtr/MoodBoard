@@ -5,7 +5,7 @@
 import type { FC } from 'react';
 import './LayerContextMenu.css';
 
-export type LayerAction = 'front' | 'back' | 'forward' | 'backward';
+export type LayerAction = 'front' | 'back' | 'forward' | 'backward' | 'delete';
 
 interface LayerContextMenuProps {
   x: number;
@@ -42,6 +42,16 @@ const LayerContextMenu: FC<LayerContextMenuProps> = ({ x, y, onAction, onClose }
         <li role="none">
           <button type="button" role="menuitem" onClick={() => onAction('back')}>
             À l’arrière-plan
+          </button>
+        </li>
+        <li role="none">
+          <button
+            type="button"
+            role="menuitem"
+            style={{ color: 'red' }}
+            onClick={() => onAction('delete')}
+          >
+            Supprimer
           </button>
         </li>
       </menu>

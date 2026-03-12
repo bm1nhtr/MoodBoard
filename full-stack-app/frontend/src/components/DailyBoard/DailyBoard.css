@@ -30,72 +30,54 @@
 .daily-board__mood-block {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.75rem 1rem;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
 }
 
-.daily-board__mood-row {
+.daily-board__mood-self {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.daily-board__mood-members {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-}
-
-.daily-board__mood-member {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  font-size: 0.8rem;
-  color: var(--color-text);
-}
-
-.daily-board__mood-member--me {
-  border-color: var(--color-accent);
-}
-
-.daily-board__mood-member-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 50%;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #fff;
-  flex-shrink: 0;
-  text-transform: uppercase;
-}
-
-.daily-board__mood-member-avatar--me {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.daily-board__mood-member-dot {
-  width: 0.6rem;
-  height: 0.6rem;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.daily-board__mood-member-name {
-  font-weight: 500;
+  gap: 0.5rem;
 }
 
 .daily-board__mood-label {
   font-size: 0.75rem;
   color: var(--color-muted);
+  white-space: nowrap;
+}
+
+/* Bloc "inviter des amis" */
+.daily-board__invite-block {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  border: 1px dashed var(--color-border);
+}
+
+.daily-board__invite-hint {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.daily-board__invite-btn {
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-accent);
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.daily-board__invite-btn:hover {
+  background: var(--color-accent);
+  color: #fff;
 }
 
 .daily-board__header-actions {

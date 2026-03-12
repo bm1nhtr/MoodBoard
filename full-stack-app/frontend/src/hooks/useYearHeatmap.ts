@@ -1,10 +1,10 @@
 /**
- * Hook pour la heatmap des 12 mois (vue principale)
+ * Hook pour la heatmap des 12 mois (vue principale) — données réelles MongoDB
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import type { DayHeatmapEntry } from '../types/posts';
-import { getYearHeatmap } from '../services/mock/posts';
+import { getYearHeatmap } from '../services/api/heatmap';
 
 export function useYearHeatmap(year: number) {
   const [heatmapByMonth, setHeatmapByMonth] = useState<Record<number, DayHeatmapEntry[]>>({});

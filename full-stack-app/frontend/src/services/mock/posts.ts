@@ -3,7 +3,7 @@
  * À partir du 1er mars : données « réelles » (realPosts). Avant : mock heatmap uniquement (couleurs).
  */
 
-import type { Post, MoodId, CreatePostPayload, DayHeatmapEntry, MockRoomMember } from '../../types/posts';
+import type { Post, MoodId, CreatePostPayload, DayHeatmapEntry } from '../../types/posts';
 import type { MoodOption } from '../../types/posts';
 import { MOOD_IDS, MOOD_VISUALS } from '../../constants/moodVisuals';
 import { DEFAULT_FRAME_SIZE } from '../../constants/frameShapes';

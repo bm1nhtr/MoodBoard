@@ -13,6 +13,7 @@ interface EmotionalNoteProps {
   onResize: (id: string, width: number, height: number) => void;
   onSelect: (id: string) => void;
   onContextMenu?: (id: string, clientX: number, clientY: number) => void;
+  onDelete?: (id: string) => void;
   /** Pour le guide pas à pas : cible de la flèche (premier cadre image / premier cadre texte) */
   guideTarget?: 'image' | 'text';
 }
@@ -23,6 +24,7 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
   onResize,
   onSelect,
   onContextMenu,
+  onDelete,
   guideTarget,
 }) => {
   const visual = MOOD_VISUALS[post.mood];
@@ -154,6 +156,16 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
           {authorBadge.letter}
         </span>
       )}
+      <button
+        type="button"
+        className="emotional-note__delete-btn"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); onDelete?.(post.id); }}
+        aria-label="Supprimer"
+        title="Supprimer"
+      >
+        🗑
+      </button>
       <div
         className="emotional-note__resize-handle"
         onMouseDown={handleResizeStart}

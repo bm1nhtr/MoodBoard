@@ -185,3 +185,29 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: none;
 }
+
+/* Bouton supprimer — visible au survol */
+.emotional-note__delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(220, 50, 50, 0.85);
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 10;
+  line-height: 1;
+}
+
+.emotional-note:hover .emotional-note__delete-btn {
+  opacity: 1;
+}

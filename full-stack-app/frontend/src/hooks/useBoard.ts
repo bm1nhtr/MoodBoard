@@ -1,14 +1,13 @@
 /**
- * Hook pour le board d’un jour : liste des notes, création
+ * Hook pour le board d'un jour : liste des notes, création, mood persisté
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Post } from '../types/posts';
-import type { CreatePostPayload } from '../types/posts';
-import type { MoodId } from '../types/posts';
-import { getPostsByDate, addPost, updatePost as updatePostApi, getBoardMood, setBoardMood as setBoardMoodApi } from '../services/mock/posts';
+import type { Post, CreatePostPayload, MoodId } from '../types/posts';
+import { getPostsByDate, addPost, updatePost as updatePostApi, deletePost as deletePostApi } from '../services/api/notes';
+import { getBoardMood, setBoardMood as setBoardMoodApi } from '../services/api/moods';
 
-export function useBoard(boardDate: string | null) {
+export function useBoard(boardDate: string | null, _userId?: string) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [boardMood, setBoardMoodState] = useState<MoodId>('serenity');
@@ -21,9 +20,14 @@ export function useBoard(boardDate: string | null) {
       return;
     }
     setLoading(true);
-    setBoardMoodState(getBoardMood(boardDate));
-    getPostsByDate(boardDate)
-      .then(setPosts)
+    Promise.all([
+      getPostsByDate(boardDate),
+      getBoardMood(boardDate),
+    ])
+      .then(([fetchedPosts, fetchedMood]) => {
+        setPosts(fetchedPosts);
+        setBoardMoodState(fetchedMood);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [boardDate]);
@@ -34,8 +38,8 @@ export function useBoard(boardDate: string | null) {
 
   const setBoardMood = useCallback((mood: MoodId) => {
     if (!boardDate) return;
-    setBoardMoodApi(boardDate, mood);
     setBoardMoodState(mood);
+    setBoardMoodApi(boardDate, mood).catch(console.error);
   }, [boardDate]);
 
   const createPost = useCallback(
@@ -56,5 +60,11 @@ export function useBoard(boardDate: string | null) {
     });
   }, []);
 
-  return { posts, loading, boardMood, setBoardMood, createPost, updatePost, refresh: load };
+  const deletePost = useCallback((id: string) => {
+    return deletePostApi(id).then(() => {
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+    });
+  }, []);
+
+  return { posts, loading, boardMood, setBoardMood, createPost, updatePost, deletePost, refresh: load };
 }

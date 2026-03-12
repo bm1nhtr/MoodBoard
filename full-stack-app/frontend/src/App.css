@@ -29,6 +29,35 @@
   letter-spacing: -0.02em;
 }
 
+.app__loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1rem;
+  color: var(--color-muted);
+}
+
+.app__header-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app__user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+
+.app__user-name {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
 .app__logout {
   padding: 0.4rem 0.75rem;
   border: 1px solid var(--color-border);
