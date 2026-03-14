@@ -48,18 +48,11 @@
 
 /* Bloc "inviter des amis" */
 .daily-board__invite-block {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  border: 1px dashed var(--color-border);
-}
-
-.daily-board__invite-hint {
-  font-size: 0.78rem;
-  color: var(--color-muted);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
 }
 
 .daily-board__invite-btn {
@@ -75,9 +68,67 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.daily-board__invite-btn:hover {
+.daily-board__invite-btn:hover,
+.daily-board__invite-btn--active {
   background: var(--color-accent);
   color: #fff;
+}
+
+/* Popup QR code */
+.daily-board__invite-popup {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: var(--radius-md, 0.75rem);
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 220px;
+}
+
+.daily-board__invite-popup-title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.daily-board__invite-qr {
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+.daily-board__invite-url {
+  margin: 0;
+  font-size: 0.65rem;
+  color: var(--color-muted);
+  word-break: break-all;
+  text-align: center;
+  max-width: 200px;
+}
+
+.daily-board__invite-copy-btn {
+  padding: 0.3rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s;
+}
+
+.daily-board__invite-copy-btn:hover {
+  opacity: 0.85;
 }
 
 .daily-board__header-actions {
@@ -236,6 +287,20 @@
 
 .daily-board__fab:active {
   transform: scale(0.98);
+}
+
+/* Bannière lecture seule — jours passés */
+.daily-board__readonly-banner {
+  flex-basis: 100%;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft, #e8e8e0);
+  color: var(--color-text-muted, #6b6b5a);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-align: center;
+  border: 1px solid var(--color-border, #d4d4c8);
 }
 
 /* Fond assombri pendant le guide pas à pas (flèche vers chaque type de cadre) */

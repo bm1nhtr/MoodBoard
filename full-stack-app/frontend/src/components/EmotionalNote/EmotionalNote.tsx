@@ -16,6 +16,8 @@ interface EmotionalNoteProps {
   onDelete?: (id: string) => void;
   /** Pour le guide pas à pas : cible de la flèche (premier cadre image / premier cadre texte) */
   guideTarget?: 'image' | 'text';
+  /** Si true : lecture seule — pas de drag, resize, delete ni contextmenu */
+  isReadOnly?: boolean;
 }
 
 const EmotionalNote: FC<EmotionalNoteProps> = ({
@@ -26,6 +28,7 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
   onContextMenu,
   onDelete,
   guideTarget,
+  isReadOnly = false,
 }) => {
   const visual = MOOD_VISUALS[post.mood];
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
@@ -35,22 +38,24 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
 
   const handleDragStart = useCallback(
     (e: React.MouseEvent) => {
+      if (isReadOnly) return;
       e.preventDefault();
       if (e.target instanceof HTMLElement && e.target.closest('.emotional-note__resize-handle')) return;
       movedRef.current = false;
       setDragOffset({ x: e.clientX - post.x, y: e.clientY - post.y });
       setDragPosition(null);
     },
-    [post.x, post.y]
+    [post.x, post.y, isReadOnly]
   );
 
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
+      if (isReadOnly) return;
       e.preventDefault();
       e.stopPropagation();
       setResizeStart({ x: e.clientX, y: e.clientY, w: post.width, h: post.height });
     },
-    [post.width, post.height]
+    [post.width, post.height, isReadOnly]
   );
 
   const handleMouseMove = useCallback(
@@ -103,15 +108,16 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
+      if (isReadOnly) return;
       e.preventDefault();
       onContextMenu?.(post.id, e.clientX, e.clientY);
     },
-    [post.id, onContextMenu]
+    [post.id, onContextMenu, isReadOnly]
   );
 
   return (
     <article
-      className={`emotional-note emotional-note--${post.shape} emotional-note--${post.frameType} ${hasImage ? 'emotional-note--has-image' : ''} ${visual.className}`}
+      className={`emotional-note emotional-note--${post.shape} emotional-note--${post.frameType} ${hasImage ? 'emotional-note--has-image' : ''} ${visual.className}${isReadOnly ? ' emotional-note--readonly' : ''}`}
       data-guide-target={guideTarget ?? undefined}
       style={{
         left: pos.x,
@@ -156,21 +162,25 @@ const EmotionalNote: FC<EmotionalNoteProps> = ({
           {authorBadge.letter}
         </span>
       )}
-      <button
-        type="button"
-        className="emotional-note__delete-btn"
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => { e.stopPropagation(); onDelete?.(post.id); }}
-        aria-label="Supprimer"
-        title="Supprimer"
-      >
-        🗑
-      </button>
-      <div
-        className="emotional-note__resize-handle"
-        onMouseDown={handleResizeStart}
-        aria-label="Redimensionner"
-      />
+      {!isReadOnly && (
+        <button
+          type="button"
+          className="emotional-note__delete-btn"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onDelete?.(post.id); }}
+          aria-label="Supprimer"
+          title="Supprimer"
+        >
+          🗑
+        </button>
+      )}
+      {!isReadOnly && (
+        <div
+          className="emotional-note__resize-handle"
+          onMouseDown={handleResizeStart}
+          aria-label="Redimensionner"
+        />
+      )}
     </article>
   );
 };

@@ -25,24 +25,39 @@ const GUIDE_IMAGE_KEY = 'moodboard_guide_image';
 const GUIDE_TEXT_KEY = 'moodboard_guide_text';
 const GUIDE_FAB_KEY = 'moodboard_guide_fab';
 
-/** Bouton d'invitation : copie le lien du board dans le presse-papiers */
+/** Bouton d'invitation : affiche un popup avec QR code + lien copiable */
 const InviteButton: FC<{ boardDate: string }> = ({ boardDate }) => {
+  const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
+  const url = `${window.location.origin}?date=${boardDate}`;
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}`;
 
   const handleCopy = useCallback(() => {
-    const url = `${window.location.origin}?date=${boardDate}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     });
-  }, [boardDate]);
+  }, [url]);
 
   return (
     <div className="daily-board__invite-block">
-      <span className="daily-board__invite-hint">Vous êtes seul(e) sur ce board</span>
-      <button type="button" className="daily-board__invite-btn" onClick={handleCopy}>
-        {copied ? 'Lien copié !' : '+ Inviter des amis'}
+      <button
+        type="button"
+        className={`daily-board__invite-btn${showQR ? ' daily-board__invite-btn--active' : ''}`}
+        onClick={() => setShowQR((o) => !o)}
+      >
+        {showQR ? 'Fermer' : '+ Inviter des amis'}
       </button>
+      {showQR && (
+        <div className="daily-board__invite-popup">
+          <p className="daily-board__invite-popup-title">Scanner ou copier le lien</p>
+          <img src={qrSrc} alt="QR code du board" width={180} height={180} className="daily-board__invite-qr" />
+          <p className="daily-board__invite-url">{url}</p>
+          <button type="button" className="daily-board__invite-copy-btn" onClick={handleCopy}>
+            {copied ? 'Copié !' : 'Copier le lien'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -58,6 +73,8 @@ interface DailyBoardProps {
   isFullScreen?: boolean;
   onExpandFullScreen?: () => void;
   onCollapseFullScreen?: () => void;
+  /** Si true : jour passé — consultation uniquement, aucune modification */
+  isReadOnly?: boolean;
 }
 
 const DailyBoard: FC<DailyBoardProps> = ({
@@ -71,6 +88,7 @@ const DailyBoard: FC<DailyBoardProps> = ({
   isFullScreen,
   onExpandFullScreen,
   onCollapseFullScreen,
+  isReadOnly = false,
 }) => {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -200,10 +218,15 @@ const DailyBoard: FC<DailyBoardProps> = ({
         <div className="daily-board__mood-block">
           <div className="daily-board__mood-self">
             <span className="daily-board__mood-label">Mon humeur</span>
-            <MoodPicker value={dayMood} onChange={onDayMoodChange} />
+            <MoodPicker value={dayMood} onChange={onDayMoodChange} disabled={isReadOnly} />
           </div>
           <InviteButton boardDate={boardDate} />
         </div>
+        {isReadOnly && (
+          <div className="daily-board__readonly-banner" role="status" aria-live="polite">
+            Lecture seule — ce jour est passé
+          </div>
+        )}
 
         <div className="daily-board__header-actions">
           {isFullScreen && onCollapseFullScreen ? (
@@ -234,13 +257,14 @@ const DailyBoard: FC<DailyBoardProps> = ({
               return (
                 <EmotionalNote
                   key={post.id}
-                  post={{ ...post, mood: post.mood }}
+                  post={{ ...post, mood: dayMood }}
                   onPositionChange={handlePositionChange}
                   onResize={handleResize}
-                  onSelect={setSelectedNoteId}
+                  onSelect={isReadOnly ? () => {} : setSelectedNoteId}
                   onContextMenu={handleContextMenu}
                   onDelete={deletePost}
                   guideTarget={guideTarget}
+                  isReadOnly={isReadOnly}
                 />
               );
             })}
@@ -254,28 +278,30 @@ const DailyBoard: FC<DailyBoardProps> = ({
         <button type="button" onClick={() => setZoom((z) => Math.min(2, z + 0.25))} aria-label="Zoom avant">+</button>
       </div>
 
-      <div className="daily-board__fab-wrap" ref={fabRef}>
-        {fabMenuOpen && (
-          <div className="daily-board__fab-menu">
-            <button type="button" onClick={handleAddImageFrame}>Cadre image</button>
-            <button type="button" onClick={handleAddTextFrame}>Cadre texte</button>
-          </div>
-        )}
-        <button
-          type="button"
-          className="daily-board__fab"
-          onClick={(e) => { e.stopPropagation(); setFabMenuOpen((o) => !o); }}
-          aria-label="Ajouter un cadre (image ou texte)"
-          title="Ajouter cadre"
-        >
-          +
-        </button>
-      </div>
+      {!isReadOnly && (
+        <div className="daily-board__fab-wrap" ref={fabRef}>
+          {fabMenuOpen && (
+            <div className="daily-board__fab-menu">
+              <button type="button" onClick={handleAddImageFrame}>Cadre image</button>
+              <button type="button" onClick={handleAddTextFrame}>Cadre texte</button>
+            </div>
+          )}
+          <button
+            type="button"
+            className="daily-board__fab"
+            onClick={(e) => { e.stopPropagation(); setFabMenuOpen((o) => !o); }}
+            aria-label="Ajouter un cadre (image ou texte)"
+            title="Ajouter cadre"
+          >
+            +
+          </button>
+        </div>
+      )}
 
-      {selectedNoteId != null && selectedPost?.frameType === 'image' && (
+      {!isReadOnly && selectedNoteId != null && selectedPost?.frameType === 'image' && (
         <ImagePickerModal isOpen onClose={() => setSelectedNoteId(null)} onSave={handleImageSave} currentImageUrl={selectedPost.imageUrl} />
       )}
-      {selectedNoteId != null && selectedPost?.frameType === 'text' && (
+      {!isReadOnly && selectedNoteId != null && selectedPost?.frameType === 'text' && (
         <TextEditModal isOpen onClose={() => setSelectedNoteId(null)} onSave={handleTextSave} initialText={selectedPost.text ?? ''} />
       )}
       {contextMenu && (

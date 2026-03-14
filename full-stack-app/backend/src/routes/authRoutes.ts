@@ -3,9 +3,9 @@ import passport from 'passport';
 
 const authRouter: Router = express.Router();
 
-/** Lance le flux OAuth Google */
+/** Lance le flux OAuth Google — prompt select_account force le sélecteur de compte */
 authRouter.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' })
 );
 
 /** Callback après authentification Google */

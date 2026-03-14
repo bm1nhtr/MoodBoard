@@ -1,7 +1,7 @@
 import type { DayHeatmapEntry } from '../../types/posts';
 
 export async function getYearHeatmap(year: number): Promise<Record<number, DayHeatmapEntry[]>> {
-  const res = await fetch(`/api/notes/heatmap?year=${year}`);
+  const res = await fetch(`/api/notes/heatmap?year=${year}`, { credentials: 'include' });
   if (!res.ok) throw new Error('Erreur chargement heatmap');
   const entries: DayHeatmapEntry[] = await res.json();
 

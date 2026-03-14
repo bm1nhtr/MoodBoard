@@ -10,11 +10,12 @@ import './MoodPicker.css';
 interface MoodPickerProps {
   value: MoodId;
   onChange: (mood: MoodId) => void;
+  disabled?: boolean;
 }
 
-const MoodPicker: FC<MoodPickerProps> = ({ value, onChange }) => {
+const MoodPicker: FC<MoodPickerProps> = ({ value, onChange, disabled = false }) => {
   return (
-    <div className="mood-picker" role="group" aria-label="Choisir un état émotionnel">
+    <div className={`mood-picker${disabled ? ' mood-picker--disabled' : ''}`} role="group" aria-label="Choisir un état émotionnel">
       {MOOD_IDS.map((id) => {
         const visual = MOOD_VISUALS[id];
         const isActive = value === id;
@@ -23,9 +24,10 @@ const MoodPicker: FC<MoodPickerProps> = ({ value, onChange }) => {
             key={id}
             type="button"
             className={`mood-picker__item ${visual.className} ${isActive ? 'mood-picker__item--active' : ''}`}
-            onClick={() => onChange(id)}
+            onClick={() => { if (!disabled) onChange(id); }}
             aria-pressed={isActive}
             aria-label={visual.label}
+            disabled={disabled}
           >
             <span className="mood-picker__dot" style={{ backgroundColor: visual.color }} />
             <span className="mood-picker__label">{visual.label}</span>

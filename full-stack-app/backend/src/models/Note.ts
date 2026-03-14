@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const noteSchema = new mongoose.Schema({
+  userId:    { type: String, default: '' },
   pseudo:    { type: String, required: true },
   texte:     { type: String, default: '' },
   couleur:   { type: String, default: 'yellow' },

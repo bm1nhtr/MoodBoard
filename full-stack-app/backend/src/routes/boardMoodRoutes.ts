@@ -28,7 +28,7 @@ boardMoodRouter.put('/:boardDate', async (req: Request, res: Response) => {
     const userId = getUserId(req);
     const entry = await BoardMoodModel.findOneAndUpdate(
       { boardDate, userId },
-      { mood },
+      { $set: { mood } },
       { upsert: true, new: true }
     );
     res.json(entry);
