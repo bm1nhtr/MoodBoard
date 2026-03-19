@@ -1,0 +1,225 @@
+/* Board du jour : canvas plus large que l’écran, zoom, 1 mood du jour */
+
+.daily-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 0.75rem;
+  padding-bottom: 4rem;
+}
+
+.daily-board__header {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.daily-board__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-transform: capitalize;
+}
+
+.daily-board__mood-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+
+.daily-board__mood-self {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.daily-board__mood-label {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+/* Canvas : overflow scroll, plus large que l’écran, occupe l’espace restant */
+.daily-board__canvas-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #fafaf8;
+}
+
+.daily-board__canvas-scroll {
+  position: relative;
+  min-width: 100%;
+}
+
+.daily-board__canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #fafaf8;
+}
+
+/* Zoom : positionné dans la vue board (pas sur la heatmap) */
+.daily-board__zoom {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.daily-board__zoom button {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.daily-board__zoom button:hover {
+  background: var(--color-accent-soft);
+}
+
+/* FAB : dans la vue board uniquement */
+.daily-board__fab-wrap {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.daily-board__fab-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.daily-board__fab-menu button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.daily-board__fab-menu button:hover {
+  background: var(--color-bg-hover);
+}
+
+.daily-board__fab {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(139, 154, 125, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.daily-board__fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(139, 154, 125, 0.45);
+}
+
+.daily-board__fab:active {
+  transform: scale(0.98);
+}
+
+/* ── Responsive mobile ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .daily-board {
+    padding: 0.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .daily-board__header {
+    gap: 0.5rem;
+  }
+
+  .daily-board__title {
+    font-size: 0.95rem;
+    width: 100%;
+  }
+
+  /* Mood picker : labels masqués, juste les points de couleur */
+  .mood-picker__label {
+    display: none;
+  }
+
+  .mood-picker__item {
+    padding: 0.35rem;
+    min-width: 2rem;
+  }
+
+  /* Zoom : taille réduite */
+  .daily-board__zoom {
+    bottom: 1rem;
+    left: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* FAB : légèrement plus petit */
+  .daily-board__fab {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+  }
+
+  .daily-board__fab-wrap {
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
+
+/* Bannière lecture seule — jours passés */
+.daily-board__readonly-banner {
+  flex-basis: 100%;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft, #e8e8e0);
+  color: var(--color-text-muted, #6b6b5a);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-align: center;
+  border: 1px solid var(--color-border, #d4d4c8);
+}
+
