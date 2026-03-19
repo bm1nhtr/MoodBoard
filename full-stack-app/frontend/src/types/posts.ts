@@ -1,57 +1,64 @@
 /**
- * Types pour le Mood Board Collaboratif — Shared Emotional Whiteboard
- * Board quotidien, notes positionnées, humeur = identité visuelle (couleur + effet)
+ * Types TypeScript partagés du Mood Board.
+ * Définit les structures de données utilisées dans le frontend (posts, moods, heatmap).
  */
 
-/** 5 états émotionnels — chaque id correspond à une couleur et une expression. */
+/** Les 5 états émotionnels disponibles — chaque id correspond à une couleur fixe. */
 export type MoodId = 'serenity' | 'wonder' | 'tenderness' | 'longing' | 'quiet';
 
-/** Option pour listes/legacy (label optionnel) */
-export interface MoodOption {
-  id: MoodId;
-  label: string;
-}
-
-/** 1 mood = 1 couleur = 1 état émotionnel ; label fixe pour éviter les biais d’interprétation. */
+/** Propriétés visuelles d'un mood : couleur hexadécimale, label affiché, classe CSS. */
 export interface MoodVisual {
   id: MoodId;
-  /** Libellé de l’état émotionnel — toujours affiché pour un sens partagé. */
   label: string;
-  /** Couleur représentant l’état émotionnel. */
+  /** Couleur hexadécimale du mood */
   color: string;
-  /** Classe CSS (glow, bord, texture) */
+  /** Classe CSS appliquée au cadre (glow, bord, texture) */
   className: string;
 }
 
-/** Forme du cadre — cercle, cœur, rectangle. */
+/** Forme du cadre sur le canvas. */
 export type FrameShape = 'circle' | 'heart' | 'rectangle';
 
-/** Type de cadre : image (l’utilisateur ajoute une image) ou texte (l’utilisateur ajoute du texte). */
+/** Type de contenu du cadre : image ou texte. */
 export type FrameType = 'image' | 'text';
 
-/** Cadre sur le board : glisser, redimensionner, image rognée au cadre. 1 mood par jour (board). */
+/**
+ * Un cadre (post-it) sur le board quotidien.
+ * Peut contenir une image ou du texte, positionné librement sur le canvas.
+ */
 export interface Post {
+  /** Identifiant MongoDB */
   id: string;
+  /** Contenu texte (vide pour les cadres image) */
   text: string;
-  /** Humeur du jour (1 mood pour tout le board ce jour-là) */
+  /** Humeur du jour au moment de la création */
   mood: MoodId;
+  /** Date de création ISO 8601 */
   createdAt: string;
+  /** Date du board (format YYYY-MM-DD) */
   boardDate: string;
+  /** Position horizontale sur le canvas (px) */
   x: number;
+  /** Position verticale sur le canvas (px) */
   y: number;
+  /** Largeur du cadre (px) */
   width: number;
+  /** Hauteur du cadre (px) */
   height: number;
+  /** Forme visuelle du cadre */
   shape: FrameShape;
-  /** Cadre image ou cadre texte. */
+  /** Type de contenu : image ou texte */
   frameType: FrameType;
+  /** URL de l'image (data URL ou lien externe) */
   imageUrl?: string;
-  /** Ordre d’empilement (clic droit : devant / derrière) */
+  /** Ordre d'empilement CSS (z-index) */
   zIndex: number;
-  /** Mock collab : auteur du cadre (démo à partir du 1er mars) */
-  createdBy?: 'me' | 'alice' | 'bob';
 }
 
-/** Payload pour créer un cadre (image ou texte). */
+/**
+ * Payload envoyé au backend pour créer un nouveau cadre.
+ * boardDate est obligatoire ; x, y, width, height ont des valeurs par défaut.
+ */
 export interface CreatePostPayload {
   text: string;
   mood: MoodId;
@@ -66,20 +73,17 @@ export interface CreatePostPayload {
   zIndex?: number;
 }
 
-/** Membre du groupe (mock collab) : humeur par utilisateur pour un jour */
-export interface MockRoomMember {
-  id: string;
-  name: string;
-  isMe: boolean;
-  mood: MoodId;
-}
-
-/** Entrée heatmap : intensité émotionnelle d’un jour (pour le calendrier) */
+/**
+ * Entrée heatmap pour un jour donné.
+ * Utilisée pour colorier les cellules de la heatmap annuelle.
+ */
 export interface DayHeatmapEntry {
+  /** Date au format YYYY-MM-DD */
   date: string;
-  /** 0–1 : intensité pour la couleur du jour */
+  /** Intensité de 0 à 1 : proportionnelle au nombre de cadres du jour */
   intensity: number;
-  /** Humeur dominante du jour (pour teinte) */
+  /** Humeur dominante du jour (détermine la couleur) — null si aucune note */
   dominantMood: MoodId | null;
+  /** Nombre de cadres créés ce jour */
   noteCount: number;
 }

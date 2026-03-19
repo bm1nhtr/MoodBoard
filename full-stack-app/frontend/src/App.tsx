@@ -1,11 +1,11 @@
 /**
- * Point d'entrée : Shared Emotional Whiteboard
- * Vue principale = heatmap 12 mois + accès boards. Clic jour → board du jour.
+ * Composant racine de l'application.
+ * Gère deux vues : heatmap annuelle (colonne gauche) et board quotidien (zone principale).
+ * Cliquer sur un jour dans la heatmap charge le board correspondant.
  */
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import type { MoodId } from './types/posts';
-import type { CreatePostPayload } from './types/posts';
+import type { MoodId, CreatePostPayload } from './types/posts';
 import { useAuth } from './hooks/useAuth';
 import { useBoard } from './hooks/useBoard';
 import { useYearHeatmap } from './hooks/useYearHeatmap';
@@ -14,7 +14,7 @@ import HeatmapView from './components/HeatmapView/HeatmapView';
 import DailyBoard from './components/DailyBoard/DailyBoard';
 import './App.css';
 
-/** Formate une date en 'YYYY-MM-DD' selon l'heure locale (pas UTC) */
+/** Formate une date en 'YYYY-MM-DD' selon l'heure locale (évite le décalage UTC) */
 function localDateStr(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -22,7 +22,10 @@ function localDateStr(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Génère tous les jours de Jan 1 de l'année en cours à aujourd'hui (heure locale) */
+/**
+ * Génère la liste de tous les jours du 1er janvier de l'année courante jusqu'à aujourd'hui.
+ * Ordre décroissant : aujourd'hui en premier.
+ */
 function getAccessibleDates(): string[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -37,44 +40,48 @@ function getAccessibleDates(): string[] {
 function App() {
   const { user, loading: authLoading, logout } = useAuth();
 
-  // today mis à jour automatiquement à minuit (pas frozen au démarrage)
+  // "today" se met à jour automatiquement à minuit pour recalculer les dates accessibles
   const [today, setToday] = useState(() => new Date());
   useEffect(() => {
-    const schedule = (): ReturnType<typeof setTimeout> => {
+    const scheduleNextMidnight = (): ReturnType<typeof setTimeout> => {
       const now = new Date();
       const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
       const ms = midnight.getTime() - now.getTime();
-      return setTimeout(() => { setToday(new Date()); schedule(); }, ms);
+      return setTimeout(() => { setToday(new Date()); scheduleNextMidnight(); }, ms);
     };
-    const t = schedule();
+    const t = scheduleNextMidnight();
     return () => clearTimeout(t);
   }, []);
 
+  // Liste des dates cliquables : du 1er janv. à aujourd'hui
   const accessibleDates = useMemo(() => getAccessibleDates(), [today]);
+
+  // Date sélectionnée par défaut = aujourd'hui (premier élément de la liste)
   const initialDate = useMemo(
     () => (accessibleDates.length > 0 ? accessibleDates[0] : null),
     [accessibleDates]
   );
   const [selectedDate, setSelectedDate] = useState<string | null>(initialDate);
-  const [boardExpanded, setBoardExpanded] = useState(false);
 
   const year = today.getFullYear();
+
+  // Un jour passé (avant aujourd'hui) est en lecture seule : consultation uniquement
   const isReadOnly = selectedDate !== null && initialDate !== null && selectedDate < initialDate;
 
   const { heatmapByMonth, loading: heatmapLoading, refresh: refreshHeatmap } = useYearHeatmap(year);
-  const { posts, loading: boardLoading, boardMood, setBoardMood, createPost, updatePost, deletePost } = useBoard(selectedDate, user?.id);
+  const { posts, loading: boardLoading, boardMood, setBoardMood, createPost, updatePost, deletePost } = useBoard(selectedDate);
 
+  // Rafraîchit la heatmap quand on revient à la vue sans date sélectionnée
   useEffect(() => {
     if (selectedDate === null) refreshHeatmap();
   }, [selectedDate, refreshHeatmap]);
 
-  // Wrappers qui rafraîchissent le heatmap après chaque changement du board
+  // Après un changement de mood, on attend la réponse API avant de rafraîchir la heatmap
   const handleMoodChange = useCallback((mood: MoodId) => {
-    setBoardMood(mood);
-    // Délai court pour laisser le PUT /api/board-moods se terminer avant de re-fetch
-    setTimeout(refreshHeatmap, 400);
+    setBoardMood(mood).then(refreshHeatmap);
   }, [setBoardMood, refreshHeatmap]);
 
+  // Après la création d'un cadre, on rafraîchit la heatmap pour mettre à jour les couleurs
   const handleCreatePost = useCallback((payload: Omit<CreatePostPayload, 'boardDate'>) => {
     return createPost(payload).then((post) => {
       refreshHeatmap();
@@ -82,20 +89,24 @@ function App() {
     });
   }, [createPost, refreshHeatmap]);
 
+  // Après la suppression d'un cadre, on rafraîchit la heatmap
   const handleDeletePost = useCallback((id: string) => {
-    return deletePost(id).then(() => { refreshHeatmap(); });
+    return deletePost(id).then(refreshHeatmap);
   }, [deletePost, refreshHeatmap]);
 
+  // Pendant le chargement de la session : écran d'attente
   if (authLoading) {
     return <div className="app__loading-screen">Chargement…</div>;
   }
 
+  // Non connecté : afficher la page de login
   if (!user) {
     return <LoginPage />;
   }
 
   return (
     <div className="app">
+      {/* En-tête : logo, avatar, bouton déconnexion */}
       <header className="app__header">
         <h1 className="app__title">Mood Board</h1>
         <div className="app__header-user">
@@ -114,10 +125,11 @@ function App() {
         </div>
       </header>
 
-      {heatmapLoading && !boardExpanded && <p className="app__loading">Chargement…</p>}
+      {heatmapLoading && <p className="app__loading">Chargement…</p>}
 
-      <div className={`app__main ${boardExpanded ? 'app__main--board-only' : ''}`}>
-        {!boardExpanded && !heatmapLoading && (
+      <div className="app__main">
+        {/* Colonne gauche : heatmap des 12 mois */}
+        {!heatmapLoading && (
           <aside className="app__heatmap">
             <HeatmapView
               year={year}
@@ -127,6 +139,8 @@ function App() {
             />
           </aside>
         )}
+
+        {/* Zone principale : board du jour sélectionné */}
         <main className="app__board">
           {selectedDate == null ? (
             <div className="app__placeholder" aria-hidden />
@@ -142,9 +156,6 @@ function App() {
                   createPost={handleCreatePost}
                   updatePost={updatePost}
                   deletePost={handleDeletePost}
-                  isFullScreen={boardExpanded}
-                  onExpandFullScreen={() => setBoardExpanded(true)}
-                  onCollapseFullScreen={() => setBoardExpanded(false)}
                   isReadOnly={isReadOnly}
                 />
               )}

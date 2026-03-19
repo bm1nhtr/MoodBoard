@@ -3,7 +3,35 @@
 Tableau de bord quotidien pour noter ses humeurs et souvenirs visuels.
 Chaque jour : un mood, des cadres image ou texte, un historique sous forme de heatmap.
 
-**Stack** : React 19 + TypeScript + Vite (frontend) · Express 5 + TypeScript + MongoDB Atlas (backend) · Google OAuth
+**Stack** : React 19 + TypeScript + Vite (frontend) · Express 5 + TypeScript + MongoDB Atlas (backend) · Google OAuth 2.0
+
+---
+
+## Démarrage rapide
+
+> Prérequis : Node.js 18+, un cluster MongoDB Atlas, des credentials Google OAuth.
+
+```bash
+# 1. Cloner
+git clone <url-du-repo>
+cd MoodBoard
+
+# 2. Backend
+cd full-stack-app/backend
+npm install
+cp .env.example .env        # puis remplir MONGODB_URI, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SESSION_SECRET
+
+npm run dev                 # → http://localhost:3000
+
+# 3. Frontend (nouveau terminal)
+cd full-stack-app/frontend
+npm install
+npm run dev                 # → http://localhost:5173
+```
+
+Ouvrir **http://localhost:5173** — se connecter avec Google — c'est prêt.
+
+> Besoin d'aide pour configurer les variables ? Voir la section [Variables d'environnement](#variables-denvironnement).
 
 ---
 
@@ -63,7 +91,7 @@ Copier `full-stack-app/backend/.env.example` en `.env` et remplir :
 
 | Variable | Obligatoire | Description |
 |---|---|---|
-| `MONGODB_URI` | Oui | URI MongoDB Atlas (format `mongodb+srv://...`) |
+| `MONGODB_URI` | Oui | URI MongoDB Atlas (`mongodb+srv://...`) ou local (`mongodb://localhost:27017/moodboard`) |
 | `PORT` | Non | Port Express (défaut : `3000`) |
 | `GOOGLE_CLIENT_ID` | Oui | Client ID OAuth Google |
 | `GOOGLE_CLIENT_SECRET` | Oui | Client Secret OAuth Google |
@@ -97,7 +125,7 @@ Au démarrage de Vite, l'IP LAN s'affiche :
 Les appareils sur le **même réseau WiFi** peuvent accéder à l'app via cette IP.
 
 > **Limite OAuth** : Google OAuth ne fonctionne qu'avec `localhost` par défaut.
-> Pour l'OAuth via LAN ou internet, utiliser **ngrok** (voir ci-dessous).
+> Pour utiliser OAuth via LAN ou internet, utiliser **ngrok** (voir ci-dessous).
 
 ### Accès public avec ngrok
 
@@ -110,7 +138,7 @@ ngrok http 5173
 Puis dans `full-stack-app/backend/.env` :
 ```
 CLIENT_URL=https://xxxx.ngrok-free.app
-BACKEND_URL=https://yyyy.ngrok-free.app   # si le backend est aussi tunnelé
+BACKEND_URL=https://yyyy.ngrok-free.app
 ```
 
 Et ajouter dans Google Cloud Console → Authorized redirect URIs :
@@ -129,7 +157,6 @@ https://yyyy.ngrok-free.app/api/auth/google/callback
 | `npm run dev` | Serveur avec hot-reload (nodemon + ts-node) |
 | `npm run build` | Compile TypeScript → `dist/` |
 | `npm start` | Lance le build compilé |
-| `npm run seed` | Insère des données de test dans MongoDB |
 
 ### Frontend
 
@@ -144,16 +171,18 @@ https://yyyy.ngrok-free.app/api/auth/google/callback
 
 ## API — Endpoints
 
+Toutes les routes `/api/notes` et `/api/board-moods` requièrent une session authentifiée (retournent `401` sinon).
+
 | Méthode | Route | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/auth/google` | — | Démarrer le flux OAuth Google |
 | `GET` | `/api/auth/me` | Session | Utilisateur connecté |
 | `POST` | `/api/auth/logout` | Session | Déconnexion |
-| `GET` | `/api/notes?boardDate=YYYY-MM-DD` | Session | Notes du jour (filtrées par user) |
-| `POST` | `/api/notes` | Session | Créer un cadre |
+| `GET` | `/api/notes?boardDate=YYYY-MM-DD` | Session | Notes du jour (filtrées par utilisateur) |
+| `POST` | `/api/notes` | Session | Créer un cadre (image ou texte) |
 | `PATCH` | `/api/notes/:id` | Session | Modifier un cadre |
 | `DELETE` | `/api/notes/:id` | Session | Supprimer un cadre |
-| `GET` | `/api/notes/heatmap?year=YYYY` | Session | Heatmap annuelle |
+| `GET` | `/api/notes/heatmap?year=YYYY` | Session | Données heatmap annuelle |
 | `GET` | `/api/board-moods?boardDate=YYYY-MM-DD` | Session | Humeur du jour |
 | `PUT` | `/api/board-moods/:boardDate` | Session | Définir l'humeur du jour |
 
@@ -164,32 +193,38 @@ https://yyyy.ngrok-free.app/api/auth/google/callback
 ```
 MoodBoard/
 └── full-stack-app/
-    ├── backend/                 # Express + TypeScript
+    ├── backend/                   # Express + TypeScript
     │   ├── src/
-    │   │   ├── index.ts         # App, middleware, Passport OAuth
-    │   │   ├── models/          # User, Note, BoardMood (Mongoose)
-    │   │   └── routes/          # authRoutes, noteRoutes, boardMoodRoutes
-    │   ├── .env                 # Variables locales (non committé)
-    │   └── .env.example         # Template
-    └── frontend/                # React + Vite
+    │   │   ├── index.ts           # App, middleware, Passport OAuth
+    │   │   ├── middleware/
+    │   │   │   └── requireAuth.ts # Middleware 401 pour les routes protégées
+    │   │   ├── models/            # User, Note, BoardMood (Mongoose)
+    │   │   ├── routes/            # authRoutes, noteRoutes, boardMoodRoutes
+    │   │   ├── types/
+    │   │   │   └── express.d.ts   # Extension du type Express.User (Passport)
+    │   │   └── utils/
+    │   │       └── auth.ts        # Utilitaire getUserId(req)
+    │   ├── .env                   # Variables locales (non committé)
+    │   └── .env.example           # Template des variables d'environnement
+    └── frontend/                  # React + Vite
         └── src/
-            ├── App.tsx          # Root : heatmap + board
-            ├── components/      # DailyBoard, EmotionalNote, MoodPicker…
-            ├── hooks/           # useAuth, useBoard, useYearHeatmap…
-            ├── services/api/    # Fetch wrappers (notes, moods, heatmap)
-            └── types/           # TypeScript types
+            ├── App.tsx            # Root : heatmap + board quotidien
+            ├── components/        # DailyBoard, EmotionalNote, MoodPicker…
+            ├── hooks/             # useAuth, useBoard, useYearHeatmap
+            ├── services/api/      # Fetch wrappers (notes, moods, heatmap)
+            ├── constants/         # moodVisuals, frameShapes
+            └── types/             # TypeScript types (Post, MoodId…)
 ```
 
 ---
 
 ## Fonctionnalités
 
-- **Connexion Google** — authentification OAuth 2.0, pas de mot de passe
-- **Heatmap annuelle** — 12 mois × 31 jours, couleur = humeur du jour, intensité = nombre de cadres
-- **Board quotidien** — canvas 3000×2000 px, glisser-déposer, zoom 40–200 %
-- **Cadres image / texte** — 3 formes (rectangle, cercle, cœur), couleur synchronisée avec l'humeur
-- **5 humeurs** — serenity, wonder, tenderness, longing, quiet
+- **Connexion Google** — authentification OAuth 2.0, sélection de compte forcée
+- **Données privées** — chaque compte a ses propres notes et heatmap (filtrage par `userId`)
+- **Heatmap annuelle** — 12 mois × 31 jours, couleur = humeur dominante, intensité = nombre de cadres
+- **Board quotidien** — canvas 3 000 × 2 000 px, glisser-déposer, zoom 40–200 %
+- **Cadres image / texte** — ajout, déplacement, redimensionnement, suppression
+- **5 humeurs** — serenity, wonder, tenderness, longing, quiet — couleur du board synchronisée sur tous les cadres
 - **Mode lecture seule** — les jours passés ne sont pas modifiables
-- **Données privées** — chaque compte a ses propres notes et heatmap
-- **Invitation via QR code** — partager le lien d'un jour avec un QR code
-- **Accès LAN** — tester avec d'autres appareils sur le même réseau
+- **Responsive** — layout adaptatif desktop (côte à côte) et mobile (heatmap + board empilés)

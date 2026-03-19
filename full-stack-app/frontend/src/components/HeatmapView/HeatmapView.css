@@ -126,3 +126,23 @@
     grid-template-columns: 1.75rem repeat(12, minmax(0.6rem, 1fr));
   }
 }
+
+/* Sur mobile la heatmap est plus compacte (hauteur 220px) */
+@media (max-width: 768px) {
+  .heatmap-view {
+    padding: 0.25rem 0;
+  }
+
+  .heatmap-view__month-header {
+    font-size: 0.45rem;
+  }
+
+  .heatmap-view__day-label {
+    font-size: 0.5rem;
+    padding-right: 0.15rem;
+  }
+
+  .heatmap-view__grid-wrap {
+    padding: 0.2rem;
+  }
+}

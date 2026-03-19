@@ -1,43 +1,44 @@
 /**
- * 1 couleur = 1 label = 1 état émotionnel (fixe, pour éviter les biais).
- * Palette : vert → marron (couleurs proches, lisibles).
+ * Palette des humeurs : association fixe entre un identifiant, un label et une couleur.
+ * Les couleurs vont du vert clair (sérénité) au brun chaud (quiétude).
+ * Les couleurs sont fixes pour éviter les biais dans l'interprétation émotionnelle.
  */
 
 import type { MoodId, MoodVisual } from '../types/posts';
 
-/** Palette vert → marron (green to brown), 1 couleur = 1 état émotionnel labellé. */
+/** Dictionnaire : MoodId → propriétés visuelles (couleur, label, classe CSS). */
 export const MOOD_VISUALS: Record<MoodId, MoodVisual> = {
   serenity: {
     id: 'serenity',
     label: 'Sérénité',
-    color: '#C5DFC5',
+    color: '#C5DFC5',        // vert pâle
     className: 'mood--serenity',
   },
   wonder: {
     id: 'wonder',
     label: 'Émerveillement',
-    color: '#8FBC8F',
+    color: '#8FBC8F',        // vert moyen
     className: 'mood--wonder',
   },
   tenderness: {
     id: 'tenderness',
     label: 'Tendresse',
-    color: '#A8B89A',
+    color: '#A8B89A',        // vert grisé
     className: 'mood--tenderness',
   },
   longing: {
     id: 'longing',
     label: 'Nostalgie',
-    color: '#C4B896',
+    color: '#C4B896',        // beige chaud
     className: 'mood--longing',
   },
   quiet: {
     id: 'quiet',
     label: 'Quiétude',
-    color: '#A0826D',
+    color: '#A0826D',        // brun doux
     className: 'mood--quiet',
   },
 };
 
-/** Liste des ids pour itération */
+/** Liste ordonnée des ids pour itérer sur les humeurs (dans le MoodPicker, etc.). */
 export const MOOD_IDS: MoodId[] = ['serenity', 'wonder', 'tenderness', 'longing', 'quiet'];
