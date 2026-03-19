@@ -1,5 +1,7 @@
 /**
- * Fenêtre de choix d’image au clic sur un cadre : fichier local ou lien image (concept type Miro).
+ * Modal de sélection d'image pour un cadre image.
+ * Deux modes disponibles : fichier local (converti en data URL) ou lien externe (URL).
+ * S'ouvre au clic sur un cadre image vide ou existant.
  */
 
 import { useState, useCallback, useRef, useEffect, type FC } from 'react';
@@ -8,10 +10,13 @@ import './ImagePickerModal.css';
 interface ImagePickerModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Appelé avec l'URL de l'image sélectionnée (data URL ou lien HTTP) */
   onSave: (imageUrl: string) => void;
+  /** URL actuelle de l'image (pré-remplit le champ lien) */
   currentImageUrl?: string;
 }
 
+/** Les deux onglets de sélection d'image. */
 type Tab = 'file' | 'link';
 
 const ImagePickerModal: FC<ImagePickerModalProps> = ({
@@ -25,10 +30,15 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Remet à jour le champ lien quand la modal est rouverte avec une nouvelle image
   useEffect(() => {
     if (isOpen) setLinkUrl(currentImageUrl);
   }, [isOpen, currentImageUrl]);
 
+  /**
+   * Lit le fichier sélectionné via FileReader et le convertit en data URL.
+   * Vérifie que c'est bien un fichier image avant de continuer.
+   */
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -48,12 +58,13 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
     [onSave, onClose]
   );
 
+  /** Valide le lien saisi et appelle onSave avec l'URL. */
   const handleLinkSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       const url = linkUrl.trim();
       if (!url) {
-        setError('Collez un lien d’image');
+        setError('Collez un lien d'image');
         return;
       }
       onSave(url);
@@ -62,6 +73,7 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
     [linkUrl, onSave, onClose]
   );
 
+  /** Ferme la modal si l'utilisateur clique sur le fond sombre (backdrop). */
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) onClose();
@@ -93,6 +105,8 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
             ×
           </button>
         </header>
+
+        {/* Onglets : Fichier local / Lien image */}
         <div className="image-picker-modal__tabs">
           <button
             type="button"
@@ -109,7 +123,9 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
             Lien image
           </button>
         </div>
+
         <div className="image-picker-modal__body">
+          {/* Onglet fichier : input masqué déclenché par un bouton visible */}
           {tab === 'file' && (
             <div className="image-picker-modal__section">
               <input
@@ -128,6 +144,8 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
               </button>
             </div>
           )}
+
+          {/* Onglet lien : formulaire avec un champ URL */}
           {tab === 'link' && (
             <form onSubmit={handleLinkSubmit} className="image-picker-modal__section">
               <input
@@ -142,6 +160,8 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
               </button>
             </form>
           )}
+
+          {/* Message d'erreur de validation */}
           {error && <p className="image-picker-modal__error">{error}</p>}
         </div>
       </div>
