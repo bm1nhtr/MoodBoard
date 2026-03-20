@@ -9,7 +9,7 @@ Chaque jour : un mood, des cadres image ou texte, un historique sous forme de he
 
 ## Démarrage rapide
 
-> Prérequis : Node.js 18+, un cluster MongoDB Atlas, des credentials Google OAuth.
+> Prérequis : Node.js 20.19+ (ou 22.12+), un cluster MongoDB Atlas, des credentials Google OAuth.
 
 ```bash
 # 1. Cloner
@@ -39,7 +39,7 @@ Ouvrir **http://localhost:5173** — se connecter avec Google — c'est prêt.
 
 | Outil | Version minimale |
 |---|---|
-| [Node.js](https://nodejs.org/) | 18+ |
+| [Node.js](https://nodejs.org/) | 20.19+ (ou 22.12+) |
 | [npm](https://www.npmjs.com/) | 9+ |
 | Compte [Google Cloud](https://console.cloud.google.com/) | Pour OAuth |
 | Cluster [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) | Gratuit (M0) |
@@ -154,7 +154,7 @@ https://yyyy.ngrok-free.app/api/auth/google/callback
 
 | Commande | Description |
 |---|---|
-| `npm run dev` | Serveur avec hot-reload (nodemon + ts-node) |
+| `npm run dev` | Serveur avec hot-reload (nodemon + tsx) |
 | `npm run build` | Compile TypeScript → `dist/` |
 | `npm start` | Lance le build compilé |
 
