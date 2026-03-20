@@ -64,7 +64,7 @@ const ImagePickerModal: FC<ImagePickerModalProps> = ({
       e.preventDefault();
       const url = linkUrl.trim();
       if (!url) {
-        setError('Collez un lien d'image');
+        setError("Collez un lien d'image");
         return;
       }
       onSave(url);
